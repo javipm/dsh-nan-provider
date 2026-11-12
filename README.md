@@ -87,6 +87,40 @@ Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
 dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en
 Windows) y el estado del TUI en `~/.dsh-tui`.
 
+## Empezar de cero (reset)
+
+Si quieres que el harness arranque como si fuese la primera vez, sin perder los
+históricos:
+
+```bash
+./scripts/reset.sh --dry-run   # enseña qué borraría
+./scripts/reset.sh             # pide confirmación y hace backup
+```
+
+En Windows nativo (PowerShell):
+
+```powershell
+pwsh -File .\scripts\reset.ps1 -DryRun
+pwsh -File .\scripts\reset.ps1
+```
+
+Qué borra:
+
+- `~/.dsh/.credentials.yaml` (claves guardadas, incluida `NAN_API_KEY`)
+- `~/.dsh/nan-provider.json` (proveedor compartido)
+- `cordis.patch.yml` de `dsh-tui` y de `desktop` (proveedores y modelo)
+- preferencias del TUI: `model.json`, `model-recents.json`, `effort.json`,
+  `permission.json`
+
+Qué **no** toca: `~/.dsh/sessions`, `~/.dsh/attachments`, `~/.dsh/storages`,
+`~/.dsh-tui/history.jsonl`, `session-index.json` ni `session-lists`.
+
+Cada ejecución guarda un backup en `~/dsh-backup-<fecha>/`. Respeta
+`DSH_HOME` y `DSH_TUI_HOME` si los tienes cambiados.
+
+Después del reset: instala el plugin en cada perfil, `/nan-setup` en la TUI y
+abre Desktop.
+
 ## Clave de API
 
 El plugin detecta el proveedor por id `nan`, por `baseURL` de `nan.builders` o
@@ -153,6 +187,8 @@ lib/panel.js        componente React del panel (sin JSX, React del host)
 lib/format.js       números, barras, sparkline, fechas (puro)
 lib/text-report.js  informe de texto y mensajes de error
 cordis.patch.yml    fila que monta el bundle en el perfil
+scripts/reset.sh    reset de config/credenciales (bash: macOS, Linux, Windows Git Bash)
+scripts/reset.ps1   lo mismo para PowerShell en Windows
 dsh-plugin.json     manifiesto 0.15 (metadata de ecosistema)
 ```
 

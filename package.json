@@ -20,6 +20,7 @@
     "./package.json": "./package.json"
   },
   "files": [
+    "scripts",
     "lib",
     "cordis.patch.yml",
     "dsh-plugin.json",

@@ -3,5 +3,3 @@ package-lock.json
 *.log
 .DS_Store
 
-# local-only helper, not part of the published package
-scripts/reset.sh
