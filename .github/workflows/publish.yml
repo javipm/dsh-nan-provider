@@ -43,6 +43,14 @@ jobs:
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: pick dist-tag
+        id: tag
+        run: |
+          version=$(node -p "require('./package.json').version")
+          case "$version" in
+            *-*) echo "tag=beta" >> "$GITHUB_OUTPUT" ;;
+            *)   echo "tag=latest" >> "$GITHUB_OUTPUT" ;;
+          esac
       - name: publish
         if: steps.check.outputs.published == 'false'
-        run: npm publish --provenance --access public
+        run: npm publish --provenance --access public --tag "${{ steps.tag.outputs.tag }}"
