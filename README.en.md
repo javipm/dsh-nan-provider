@@ -50,9 +50,6 @@ and default model are checked.
 
 The plugin finds the provider by id `nan`, by a `nan.builders` `baseURL` or by a
 “NaN” label, then uses its `apiKeyEnv` (and `baseURL`) for the `/nan-usage` call.
-Without a provider it falls back to `OPENAI_API_KEY` and
-`https://api.nan.builders/v1`.
-
 The key is resolved per operation from the harness credential store
 (`~/.dsh/.credentials.yaml`) and, failing that, from the environment variable.
 When neither has it, `/nan-setup` prompts for it (visible while typing) and
