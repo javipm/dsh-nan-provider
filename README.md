@@ -58,20 +58,22 @@ del registro resuelva una vieja.
 
 ## Puesta en marcha (TUI + Desktop)
 
-Cada perfil guarda su propia configuración, así que este es el único orden que
-funciona:
+El orden de instalación da igual (primero TUI, primero Desktop, o a la vez). Lo
+único que importa es ejecutar **`/nan-setup` una vez** en cualquiera de los dos
+y abrir el otro después.
 
-1. **Configura una vez en la TUI:** `/restart` y luego `/nan-setup`.
+1. **Primera vez**: abre la TUI (o Desktop) y ejecuta `/nan-setup`.
    - Crea o refresca el proveedor `nan` con los modelos del catálogo.
    - Pide la clave si no existe y la guarda como `NAN_API_KEY`.
    - Deja `deepseek-v4-flash` como modelo por defecto.
-   - Publica el resultado en **`~/.dsh/nan-provider.json`**.
-2. **Comprueba en la TUI:** `/nan-usage` abre la pestaña `◈` con los créditos.
-3. **Abre Desktop.** A los ~3 s el plugin aplica ese fichero con el servicio de
-   settings del perfil `desktop` y verás el proveedor configurado. Lo confirma
-   con una línea “NaN provider synced” y escribiendo la ruta en
-   `~/.dsh/profiles/desktop/cordis.patch.yml`.
-4. **Comprueba en Desktop:** `/nan-usage` devuelve el informe en texto.
+   - Publica todo en **`~/.dsh/nan-provider.json`**.
+2. **TUI**: `/nan-usage` abre la pestaña `◈` con los créditos.
+3. **Desktop**: la próxima vez que lo abras, a los ~3 s aplica ese fichero con
+   el servicio de settings del perfil `desktop`. Lo confirma con una línea
+   “NaN provider synced” y dejando la ruta escrita en
+   `~/.dsh/profiles/desktop/cordis.patch.yml`. Si Desktop ya estaba abierto
+   cuando corriste `/nan-setup`, ciérralo y ábrelo otra vez.
+4. **Desktop**: `/nan-usage` devuelve el informe en texto.
 
 Cómo se enlazan los perfiles:
 
