@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { fetchUsage, normalizeReport, resolveApiKey, usageWindow } from '../lib/api.js'
+import { fetchModels, fetchUsage, normalizeReport, resolveApiKey, usageWindow } from '../lib/api.js'
 
 const payload = {
   object: 'usage.report',
@@ -170,4 +170,40 @@ test('resolveApiKey prefers the credential store and falls back to the environme
   }
 
   assert.equal(await resolveApiKey({ get: () => undefined }, 'NAN_USAGE_TEST_KEY'), '')
+})
+
+test('fetchModels lists ids from both payload shapes', async () => {
+  const seen = []
+  const fetchImpl = async (url, init) => {
+    seen.push({ url: String(url), auth: init?.headers?.authorization })
+    return jsonResponse({ data: [{ id: 'glm5.3' }, { id: 'brand-new' }, { id: '' }, { nope: true }] })
+  }
+  const result = await fetchModels({ apiKey: 'sk-test', baseUrl: 'https://api.example.test/v1', fetchImpl })
+  assert.deepEqual(result, { ok: true, ids: ['glm5.3', 'brand-new'] })
+  assert.match(seen[0].url, /\/v1\/models$/)
+  assert.equal(seen[0].auth, 'Bearer sk-test')
+
+  const arrayShape = await fetchModels({
+    apiKey: 'sk-test',
+    fetchImpl: async () => jsonResponse([{ id: 'one' }, { id: 'two' }]),
+  })
+  assert.deepEqual(arrayShape, { ok: true, ids: ['one', 'two'] })
+})
+
+test('fetchModels maps failures', async () => {
+  assert.deepEqual(await fetchModels({ apiKey: '' }), { ok: false, reason: 'no-key' })
+  assert.deepEqual(await fetchModels({ apiKey: 'sk', fetchImpl: async () => jsonResponse({}, { status: 401 }) }), {
+    ok: false,
+    reason: 'unauthorized',
+    status: 401,
+  })
+  assert.deepEqual(await fetchModels({ apiKey: 'sk', fetchImpl: async () => jsonResponse({}, { status: 500 }) }), {
+    ok: false,
+    reason: 'http',
+    status: 500,
+  })
+  assert.deepEqual(await fetchModels({ apiKey: 'sk', fetchImpl: async () => jsonResponse({ data: [] }) }), {
+    ok: false,
+    reason: 'invalid',
+  })
 })

@@ -12,10 +12,12 @@ el modelo por defecto y muestra créditos y gasto en el sidebar.
 
 ## Qué hace
 
-- **`/nan-setup`**: crea el proveedor `nan` con los 11 modelos del catálogo
-  (endpoint, compat, reintentos), comprueba la clave y fija
-  `deepseek-v4-flash` como modelo por defecto. No borra `openai` ni edita el
-  YAML a mano: escribe por el servicio de settings, igual que `/provider`.
+- **`/nan-setup`**: crea o refresca el proveedor `nan`. Pregunta la clave si
+  falta (y la guarda), descarga `{baseURL}/models`, la une al catálogo —los
+  modelos nuevos de chat entran con valores conservadores; embeddings, rerank,
+  STT, TTS e imagen se filtran— y fija `deepseek-v4-flash` como modelo por
+  defecto. No borra `openai` ni edita el YAML a mano: escribe por el servicio
+  de settings, igual que `/provider`.
 - **Pestaña «NaN usage»** en el sidebar, junto a Info / Todo / Jobs (icono `◈`):
   barra de créditos del periodo, restante y días, últimos 30 días con top de
   modelos, sparkline diaria y total histórico.
@@ -35,9 +37,9 @@ dsh plugin --profile dsh-tui add dsh-nan
 
 ## Puesta en marcha
 
-1. `/nan-setup` — crea el proveedor y fija el modelo por defecto.
-2. Si no había clave: `/login` (o Ajustes → Proveedores) para guardar la de NaN.
-3. `/restart` para montar la ruta.
+1. `/nan-setup` — crea el proveedor, pide/guarda la clave y fija el modelo.
+2. Vuelve a ejecutarlo cuando quieras refrescar el catálogo de modelos.
+3. `/restart` para montar la ruta la primera vez.
 4. `/usage` (o la pestaña `◈`) para ver el consumo.
 
 El setup es idempotente: si `nan` ya existe lo deja intacto y solo verifica la
@@ -51,8 +53,9 @@ por etiqueta «NaN», y usa su `apiKeyEnv` (y su `baseURL`) para consultar
 `https://api.nan.builders/v1`.
 
 La clave se resuelve por operación desde el store de credenciales del harness
-(`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno. El
-fichero nunca se lee directamente.
+(`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno. Si
+tampoco hay, `/nan-setup` la pide en un diálogo (visible mientras escribes) y
+la guarda en el store. El fichero nunca se lee directamente.
 
 El endpoint es `GET {baseURL}/usage` (documentado en
 `https://nan.builders/openapi.json`); no consume créditos.
@@ -83,7 +86,7 @@ Opcional; se ajusta en la fila `nan` de
 
 ```bash
 npm install --include=dev   # NODE_ENV=production omite devDependencies si no se lo pides
-npm test                    # 30 tests; los 3 de render usan react-test-renderer
+npm test                    # 35 tests; los 3 de render usan react-test-renderer
 ```
 
 Sin dependencias de runtime: solo `fetch` y los servicios del harness. El panel

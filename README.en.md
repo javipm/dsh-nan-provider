@@ -12,9 +12,11 @@ key, sets the default model and shows credits and spend in the sidebar.
 
 ## What it does
 
-- **`/nan-setup`**: creates the `nan` provider with the 11 catalog models
-  (endpoint, compat, retries), checks the key and sets `deepseek-v4-flash` as
-  the default model. It never deletes `openai` or hand-edits the YAML: it writes
+- **`/nan-setup`**: creates or refreshes the `nan` provider. It asks for the key
+  when missing (and stores it), fetches `{baseURL}/models`, merges it with the
+  catalog —new chat models get conservative defaults; embeddings, rerank, STT,
+  TTS and image models are filtered out— and sets `deepseek-v4-flash` as the
+  default model. It never deletes `openai` or hand-edits the YAML: it writes
   through the settings service, exactly like `/provider`.
 - **“NaN usage” sidebar tab** next to Info / Todo / Jobs (`◈` icon): billing
   period credit bar, credits left and days, last 30 days with top models, daily
@@ -35,9 +37,9 @@ dsh plugin --profile dsh-tui add dsh-nan
 
 ## Getting started
 
-1. `/nan-setup` — creates the provider and sets the default model.
-2. If there was no key: `/login` (or Settings → Providers) to store the NaN one.
-3. `/restart` to mount the route.
+1. `/nan-setup` — creates the provider, asks for/stores the key and sets the model.
+2. Run it again whenever you want to refresh the model catalog.
+3. `/restart` to mount the route the first time.
 4. `/usage` (or the `◈` tab) to see usage.
 
 Setup is idempotent: an existing `nan` route is left untouched and only the key
@@ -52,7 +54,8 @@ Without a provider it falls back to `OPENAI_API_KEY` and
 
 The key is resolved per operation from the harness credential store
 (`~/.dsh/.credentials.yaml`) and, failing that, from the environment variable.
-The file is never read directly.
+When neither has it, `/nan-setup` prompts for it (visible while typing) and
+stores it. The file is never read directly.
 
 The endpoint is `GET {baseURL}/usage` (documented in
 `https://nan.builders/openapi.json`); it does not consume credits.
@@ -83,7 +86,7 @@ Optional; set it on the `nan` row of
 
 ```bash
 npm install --include=dev   # NODE_ENV=production skips devDependencies otherwise
-npm test                    # 30 tests; the 3 render tests use react-test-renderer
+npm test                    # 35 tests; the 3 render tests use react-test-renderer
 ```
 
 No runtime dependencies: only `fetch` and the harness services. The panel uses
