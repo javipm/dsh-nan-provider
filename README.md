@@ -1,9 +1,10 @@
 # dsh-nan-provider
 
 Configura y vigila tu suscripción **NaN** ([nan.builders](https://nan.builders))
-dentro de la **TUI** ([dsh-tui](https://github.com/ccch1mneyyy/dsh-TUI)) de DeepSeek Harness: crea el proveedor, guarda la clave, deja
-el modelo por defecto y muestra créditos y gasto en el sidebar. Basado en la
-idea de [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
+dentro de DeepSeek Harness, tanto en la **TUI** ([dsh-tui](https://github.com/ccch1mneyyy/dsh-TUI))
+como en **Desktop**: crea el proveedor, guarda la clave, deja el modelo por
+defecto y muestra créditos y gasto. Basado en la idea de
+[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
 🇬🇧 [English](README.en.md) · 🇪🇸 **Español**
 
@@ -30,43 +31,61 @@ idea de [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 > soportada es una pestaña propia. El chip se une a la línea de estado existente
 > porque no hay seam para una segunda línea de footer.
 
-## Un setup para TUI y Desktop
-
-Cada perfil de DSH (`dsh-tui`, `desktop`) guarda su propia configuración, pero la
-clave y este plugin los unen:
-
-- La clave vive en el credential store común (`~/.dsh/.credentials.yaml`).
-- `/nan-setup` publica el proveedor en **`~/.dsh/nan-provider.json`**.
-- Al arrancar, el plugin de cualquier perfil lee ese fichero y, si le falta la
-  ruta `nan` o va por detrás en modelos, la aplica con su propio servicio de
-  settings. No edita YAML a mano ni toca el otro perfil.
-
-Así configuras una vez y TUI y Desktop comparten proveedor y catálogo. El perfil
-`desktop` solo lo gestiona la app: instala el plugin allí con
-**Ajustes → Plugins → Add plugin** y pon `dsh-nan-provider`.
-
-En Desktop no hay panel ni chip (son seams del TUI); tienes `/nan-setup` y
-`/nan-usage` como informe de texto.
-
-Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
-dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en
-Windows).
-
 ## Instalación
+
+### TUI (`dsh-tui`)
 
 ```bash
 dsh plugin --profile dsh-tui add dsh-nan-provider
 ```
 
-## Puesta en marcha
+O dentro de la propia TUI: `/plugin install dsh-nan-provider`.
 
-1. `/nan-setup` — crea el proveedor, pide/guarda la clave y fija el modelo.
-2. Vuelve a ejecutarlo cuando quieras refrescar el catálogo de modelos.
-3. `/restart` para montar la ruta la primera vez.
-4. `/nan-usage` (o la pestaña `◈`) para ver el consumo.
+### Desktop (DeepSeek Harness)
 
-El setup es idempotente: si `nan` ya existe lo deja intacto y solo verifica la
-clave y el modelo por defecto.
+1. Abre **Ajustes → Plugins → Add plugin**.
+2. Escribe `dsh-nan-provider` y confirma.
+3. Reinicia la app cuando termine.
+
+El perfil `desktop` está gestionado por la app Electron: `dsh plugin --profile
+desktop` responde `profile "desktop" is managed exclusively by the Electron
+application`. Instálalo siempre desde Ajustes.
+
+En los dos casos comprueba que quedas en la última versión (`npm view
+dsh-nan-provider version`): si reinstalas poco después de publicar, fija la
+versión explícita (`add dsh-nan-provider@latest`) para no dejar que un cache
+del registro resuelva una vieja.
+
+## Puesta en marcha (TUI + Desktop)
+
+Cada perfil guarda su propia configuración, así que este es el único orden que
+funciona:
+
+1. **Configura una vez en la TUI:** `/restart` y luego `/nan-setup`.
+   - Crea o refresca el proveedor `nan` con los modelos del catálogo.
+   - Pide la clave si no existe y la guarda como `NAN_API_KEY`.
+   - Deja `deepseek-v4-flash` como modelo por defecto.
+   - Publica el resultado en **`~/.dsh/nan-provider.json`**.
+2. **Comprueba en la TUI:** `/nan-usage` abre la pestaña `◈` con los créditos.
+3. **Abre Desktop.** A los ~3 s el plugin aplica ese fichero con el servicio de
+   settings del perfil `desktop` y verás el proveedor configurado. Lo confirma
+   con una línea “NaN provider synced” y escribiendo la ruta en
+   `~/.dsh/profiles/desktop/cordis.patch.yml`.
+4. **Comprueba en Desktop:** `/nan-usage` devuelve el informe en texto.
+
+Cómo se enlazan los perfiles:
+
+- La clave es común: `~/.dsh/.credentials.yaml` (`NAN_API_KEY`).
+- El proveedor y los modelos viajan por `~/.dsh/nan-provider.json`.
+- Si un perfil no encuentra el fichero pero ya tiene una ruta `nan`, la publica
+  él (primer arranque tras actualizar). `/nan-setup` es quien lo actualiza.
+
+En Desktop no hay panel ni chip (son seams del TUI): tienes `/nan-setup` y
+`/nan-usage` como informe de texto.
+
+Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
+dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en
+Windows) y el estado del TUI en `~/.dsh-tui`.
 
 ## Clave de API
 
