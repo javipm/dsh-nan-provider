@@ -1,7 +1,7 @@
 {
-  "name": "dsh-nan",
+  "name": "dsh-nan-provider",
   "version": "0.2.0",
-  "description": "NaN (nan.builders) setup and subscription usage for the DeepSeek Harness TUI: creates the provider, stores the key, sets the default model and shows credits in a sidebar panel.",
+  "description": "NaN (nan.builders) provider setup and subscription usage for the DeepSeek Harness TUI, based on the pi-nan-provider approach: creates the provider, stores the key, sets the default model and shows credits in a sidebar panel.",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -50,10 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/javipm/dsh-nan.git"
+    "url": "git+https://github.com/javipm/dsh-nan-provider.git"
   },
-  "homepage": "https://github.com/javipm/dsh-nan#readme",
+  "homepage": "https://github.com/javipm/dsh-nan-provider#readme",
   "bugs": {
-    "url": "https://github.com/javipm/dsh-nan/issues"
+    "url": "https://github.com/javipm/dsh-nan-provider/issues"
   }
 }

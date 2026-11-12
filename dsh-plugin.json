@@ -1,8 +1,8 @@
 {
   "$schema": "https://dsh.community/schemas/dsh-plugin-0.15.json",
   "manifestVersion": "0.15",
-  "id": "javipm.nan",
-  "name": "NaN",
+  "id": "javipm.nan-provider",
+  "name": "NaN provider",
   "version": "0.2.0",
   "facets": {
     "host": {
@@ -17,12 +17,12 @@
   "contributes": {
     "commands": [
       {
-        "id": "javipm.nan.setup",
+        "id": "javipm.nan-provider.setup",
         "title": "Configure the NaN provider",
         "description": "Creates the NaN provider profile, checks the API key and sets the default model."
       },
       {
-        "id": "javipm.nan.usage",
+        "id": "javipm.nan-provider.nan-usage",
         "title": "Show NaN subscription usage",
         "description": "Credits left in the current billing period, plus 30-day token and credit spend broken down by model."
       }

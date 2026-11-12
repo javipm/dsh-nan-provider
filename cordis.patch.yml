@@ -9,13 +9,13 @@
 # variable of that name.
 - insert:
     - id: nan
-      name: 'dsh-nan'
+      name: 'dsh-nan-provider'
       config:
         apiKeyEnv: OPENAI_API_KEY
         baseUrl: https://api.nan.builders/v1
         windowDays: 30
         autoRefreshSeconds: 60
-        commandName: usage
+        commandName: nan-usage
         panelId: usage
         panelTitle: NaN usage
         lowCreditsPercent: 10

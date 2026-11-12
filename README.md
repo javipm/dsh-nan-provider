@@ -1,8 +1,9 @@
-# dsh-nan
+# dsh-nan-provider
 
 Configura y vigila tu suscripción **NaN** ([nan.builders](https://nan.builders))
 dentro de la TUI de DeepSeek Harness: crea el proveedor, guarda la clave, deja
-el modelo por defecto y muestra créditos y gasto en el sidebar.
+el modelo por defecto y muestra créditos y gasto en el sidebar. Basado en la
+idea de [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
 🇬🇧 [English](README.en.md) · 🇪🇸 **Español**
 
@@ -21,7 +22,7 @@ el modelo por defecto y muestra créditos y gasto en el sidebar.
 - **Pestaña «NaN usage»** en el sidebar, junto a Info / Todo / Jobs (icono `◈`):
   barra de créditos del periodo, restante y días, últimos 30 días con top de
   modelos, sparkline diaria y total histórico.
-- **`/usage`** abre la pestaña; **`/usage text`** devuelve el informe en el chat.
+- **`/nan-usage`** abre la pestaña; **`/nan-usage text`** devuelve el informe en el chat.
 - **Chip en el footer** (`NaN 6,195 cr · 14d`) en la línea de estado, con el
   desglose al pasar el ratón. `footer: false` lo apaga.
 
@@ -32,7 +33,7 @@ el modelo por defecto y muestra créditos y gasto en el sidebar.
 ## Instalación
 
 ```bash
-dsh plugin --profile dsh-tui add dsh-nan
+dsh plugin --profile dsh-tui add dsh-nan-provider
 ```
 
 ## Puesta en marcha
@@ -40,7 +41,7 @@ dsh plugin --profile dsh-tui add dsh-nan
 1. `/nan-setup` — crea el proveedor, pide/guarda la clave y fija el modelo.
 2. Vuelve a ejecutarlo cuando quieras refrescar el catálogo de modelos.
 3. `/restart` para montar la ruta la primera vez.
-4. `/usage` (o la pestaña `◈`) para ver el consumo.
+4. `/nan-usage` (o la pestaña `◈`) para ver el consumo.
 
 El setup es idempotente: si `nan` ya existe lo deja intacto y solo verifica la
 clave y el modelo por defecto.
@@ -49,7 +50,7 @@ clave y el modelo por defecto.
 
 El plugin detecta el proveedor por id `nan`, por `baseURL` de `nan.builders` o
 por etiqueta «NaN», y usa su `apiKeyEnv` (y su `baseURL`) para consultar
-`/usage`. Si no encuentra proveedor, cae a `OPENAI_API_KEY` y a
+`/nan-usage`. Si no encuentra proveedor, cae a `OPENAI_API_KEY` y a
 `https://api.nan.builders/v1`.
 
 La clave se resuelve por operación desde el store de credenciales del harness
@@ -86,7 +87,7 @@ Opcional; se ajusta en la fila `nan` de
 
 ```bash
 npm install --include=dev   # NODE_ENV=production omite devDependencies si no se lo pides
-npm test                    # 35 tests; los 3 de render usan react-test-renderer
+npm test                    # 37 tests; los 3 de render usan react-test-renderer
 ```
 
 Sin dependencias de runtime: solo `fetch` y los servicios del harness. El panel
@@ -96,10 +97,11 @@ como reloj.
 ## Estructura
 
 ```text
-lib/index.js        panel, /usage, /nan-setup y footer (cordis inject)
+lib/index.js        panel, /nan-usage, /nan-setup y footer (cordis inject)
 lib/catalog.js      perfil canónico del proveedor NaN (11 modelos)
 lib/provider.js     detección de la ruta nan (settings)
 lib/setup.js        /nan-setup: provider + clave + modelo por defecto
+lib/overrides.js    overrides medidos del catálogo (pi-nan-provider)
 lib/api.js          cliente de /usage + normalización defensiva
 lib/source.js       caché compartida y resolución de la ruta/clave
 lib/panel.js        componente React del panel (sin JSX, React del host)
@@ -108,3 +110,15 @@ lib/text-report.js  informe de texto y mensajes de error
 cordis.patch.yml    fila que monta el bundle en el perfil
 dsh-plugin.json     manifiesto 0.15 (metadata de ecosistema)
 ```
+
+## Créditos
+
+La idea de generar el catálogo desde una fuente pública y corregirlo con
+overrides medidos —además del filtrado de endpoints no-chat— viene de
+[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider) (MIT). Los
+valores y las notas de procedencia de `lib/overrides.js` salen de su
+`scripts/manual-overrides.ts`.
+
+Los modelos nuevos que el endpoint anuncie sin metadatos entran con el sobre
+conservador de pi-nan-provider: 128k de contexto, 4k de salida, solo texto y sin
+reasoning ajustable; nunca se inventan capacidades.

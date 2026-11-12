@@ -94,7 +94,8 @@ test('mergeModels unions catalog + live ids and filters non-chat models', () => 
   assert.equal(models.length, NAN_MODELS.length + 1)
   assert.deepEqual(added, ['brand-new-chat'])
   const addedModel = models.find(model => model.id === 'brand-new-chat')
-  assert.equal(addedModel.contextWindow, 1_048_576)
+  assert.equal(addedModel.contextWindow, 128_000)
+  assert.equal(addedModel.maxTokens, 4_096)
   assert.deepEqual(addedModel.input, ['text'])
   for (const id of ['text-embedding-3-large', 'kokoro', 'flux-2-klein', 'qwen-image-2.1', 'whisper', 'minimax-h3']) {
     assert.equal(isNonChatModel(id), true, id)
@@ -122,7 +123,7 @@ test('setup creates the provider, stores the key and refreshes the models', asyn
   assert.equal(written.baseURL, 'https://api.nan.builders/v1')
   assert.equal(written.apiKeyEnv, 'OPENAI_API_KEY')
   assert.equal(written.models.length, NAN_MODELS.length + 1)
-  assert.deepEqual(state.saved, { provider: 'nan', model: 'deepseek-v4-flash', reasoningEffort: 'max' })
+  assert.deepEqual(state.saved, { provider: 'nan', model: 'deepseek-v4-flash' })
   assert.match(describeNanSetup(result), /Provider nan: created/)
   assert.match(describeNanSetup(result), /1 new: brand-new-chat/)
 })
@@ -188,4 +189,20 @@ test('buildProviderProfile carries the whole catalog and retry policy', () => {
   assert.equal(profile.models.length, 11)
   assert.ok(profile.models.some(model => model.id === 'glm5.3'))
   assert.equal(profile.retryPolicy.maxRetries, 5)
+})
+
+test('the shipped catalog carries the measured reasoning overrides', () => {
+  const byId = new Map(NAN_MODELS.map(model => [model.id, model]))
+  assert.equal(byId.get('deepseek-v4-flash').reasoningEfforts, false)
+  assert.equal(byId.get('glm5.3-flash').reasoningEfforts.off, 'minimal')
+  assert.equal(byId.get('glm5.3').reasoningEfforts.off, 'low')
+  assert.equal(byId.get('kimi-k3.1-pro').reasoningEfforts, false)
+  assert.equal(byId.get('qwen3.8-flash').compat.maxTokensField, 'max_completion_tokens')
+})
+
+test('setup picks an effort the selected model supports', async () => {
+  const { ctx, state } = harness({ modelIds: [] })
+  const result = await runNanSetup(ctx, { ...config, setupModel: 'glm5.3' })
+  assert.equal(result.effort, 'max')
+  assert.deepEqual(state.saved, { provider: 'nan', model: 'glm5.3', reasoningEffort: 'max' })
 })

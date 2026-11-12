@@ -123,18 +123,18 @@ test('apply registers the sidebar panel and the usage command', () => {
   assert.equal(typeof panel.component, 'function')
 
   assert.equal(captured.commands.length, 1)
-  assert.equal(captured.commands[0].name, 'usage')
+  assert.equal(captured.commands[0].name, 'nan-usage')
   assert.equal(captured.commands[0].recordInput, false)
 })
 
-test('/usage opens the panel without spending a request', async () => {
+test('/nan-usage opens the panel without spending a request', async () => {
   const captured = mount()
   const outcome = await captured.commands[0].handler({ rawInput: '' })
   assert.deepEqual(captured.opened, ['nan-usage:usage'])
   assert.deepEqual(outcome, { kind: 'success', text: '' })
 })
 
-test('/usage text returns the compact report', async () => {
+test('/nan-usage text returns the compact report', async () => {
   const { fetchImpl, calls } = fakeFetch()
   const captured = mount({ fetchImpl })
   const outcome = await captured.commands[0].handler({ rawInput: 'text' })
@@ -148,7 +148,7 @@ test('/usage text returns the compact report', async () => {
   assert.equal(calls[0].init.headers.authorization, 'Bearer sk-test')
 })
 
-test('without panels, /usage falls back to the text report', async () => {
+test('without panels, /nan-usage falls back to the text report', async () => {
   const { fetchImpl } = fakeFetch()
   const captured = mount({ withPanels: false, fetchImpl })
   const outcome = await captured.commands[0].handler({ rawInput: '' })
