@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm install --include=dev --no-audit --no-fund
+      - run: npm test
+      - name: manifest version matches package.json
+        run: node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));const m=JSON.parse(fs.readFileSync('dsh-plugin.json'));if(p.version!==m.version){console.error(p.version,'!=',m.version);process.exit(1)}"

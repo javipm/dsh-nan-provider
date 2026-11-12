@@ -1,0 +1,30 @@
+name: publish
+
+# Tag-driven release. A `v*` tag must equal package.json's version.
+# Prefer npm trusted publishing (npmjs.com -> package -> Trusted Publisher,
+# pointing at this repo + workflow); it needs no NPM_TOKEN secret.
+# Without that setup this job fails at the publish step on purpose.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install --include=dev --no-audit --no-fund
+      - run: npm test
+      - name: tag matches package version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          test "v$version" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != v$version"; exit 1; }
+      - run: npm publish --provenance --access public

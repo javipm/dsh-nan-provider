@@ -1,0 +1,22 @@
+# dsh-nan-usage bundle patch: mount the plugin as a profile row.
+#
+# The plugin registers a sidebar panel (ctx.tuiPanels) and a /usage command
+# when those services exist. Every config key below is optional; these are
+# the defaults, repeated here so the profile shows what can be tuned.
+#
+# API key: the plugin resolves the same credential ref the LLM provider uses
+# (`OPENAI_API_KEY`, the nan.builders key) and falls back to the environment
+# variable of that name.
+- insert:
+    - id: nan-usage
+      name: 'dsh-nan-usage'
+      config:
+        apiKeyEnv: OPENAI_API_KEY
+        baseUrl: https://api.nan.builders/v1
+        windowDays: 30
+        autoRefreshSeconds: 60
+        commandName: usage
+        panelId: usage
+        panelTitle: NaN usage
+        lowCreditsPercent: 10
+        footer: true

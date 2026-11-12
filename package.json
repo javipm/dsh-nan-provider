@@ -1,0 +1,59 @@
+{
+  "name": "dsh-nan-usage",
+  "version": "0.1.0",
+  "description": "NaN subscription usage in the DeepSeek Harness TUI: credits left, billing period, 30-day tokens and per-model spend, as a sidebar panel plus a /usage command.",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "nan",
+    "usage",
+    "credits"
+  ],
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "dsh-plugin.json",
+    "README.md",
+    "README.en.md",
+    "docs/panel.jpg",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": "^22.19 || >=24"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "react": "^19.3.1",
+    "react-test-renderer": "^19.3.1"
+  },
+  "author": "javipm",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/javipm/dsh-nan-usage.git"
+  },
+  "homepage": "https://github.com/javipm/dsh-nan-usage#readme",
+  "bugs": {
+    "url": "https://github.com/javipm/dsh-nan-usage/issues"
+  }
+}
