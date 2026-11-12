@@ -185,9 +185,78 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         )
       }
 
+      // Copied from the host's composer pills (`.pill` / `.panel` / `.title` /
+      // `.details` classes) so the chip and its card look first-party.
+      const pillStyle = expanded => ({
+        boxSizing: 'border-box',
+        borderRadius: 'var(--dsw-radius-sm, 6px)',
+        maxWidth: '100%',
+        color: expanded ? 'var(--dsw-alias-label-secondary)' : 'var(--dsw-alias-label-tertiary)',
+        font: 'inherit',
+        fontVariantNumeric: 'tabular-nums',
+        lineHeight: 'inherit',
+        whiteSpace: 'nowrap',
+        background: expanded ? 'var(--dsw-alias-interactive-bg-hover)' : 'transparent',
+        border: 'none',
+        alignItems: 'center',
+        gap: 6,
+        padding: '1px 8px',
+        display: 'inline-flex',
+        cursor: 'pointer',
+      })
+
+      const panelStyle = {
+        position: 'absolute',
+        bottom: 'calc(100% + 8px)',
+        left: 0,
+        zIndex: 1100,
+        boxSizing: 'border-box',
+        width: 'max-content',
+        minWidth: 'min(300px, calc(100vw - 24px))',
+        maxWidth: 'min(440px, calc(100vw - 24px))',
+        borderRadius: 'var(--dsw-radius-lg, 12px)',
+        background: 'var(--dsw-specific-menu, #ffffff)',
+        backdropFilter: 'var(--dsw-menu-backdrop-filter)',
+        boxShadow: 'var(--dsw-elevation-prominent, 0 8px 24px rgba(0,0,0,0.12))',
+        color: 'var(--dsw-alias-label-secondary, #5c6270)',
+        border: 0,
+        padding: 16,
+        fontSize: 12,
+        lineHeight: '18px',
+        cursor: 'default',
+      }
+
+      const titleStyle = {
+        color: 'var(--dsw-alias-label-primary, #1c1f26)',
+        justifyContent: 'space-between',
+        gap: 16,
+        marginBottom: 8,
+        fontWeight: 500,
+        display: 'flex',
+      }
+
+      const detailsStyle = {
+        color: 'var(--dsw-alias-label-tertiary, #8b93a7)',
+        gridTemplateColumns: 'minmax(76px,auto) minmax(0,1fr)',
+        gap: '6px 16px',
+        margin: 0,
+        display: 'grid',
+      }
+
+      const valueStyle = {
+        color: 'var(--dsw-alias-label-secondary, #5c6270)',
+        fontVariantNumeric: 'tabular-nums',
+        textAlign: 'right',
+        margin: 0,
+        minWidth: 0,
+      }
+
+      const labelStyle = { margin: 0, minWidth: 0 }
+
       function NanUsageChip() {
         const [state, setState] = React.useState({ phase: 'loading' })
         const [open, setOpen] = React.useState(false)
+        const [hovered, setHovered] = React.useState(false)
         const load = React.useCallback(async () => {
           const result = await fetchUsage()
           setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
@@ -204,67 +273,58 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         const label = report === undefined
           ? state.phase === 'loading' ? 'NaN …' : 'NaN —'
           : `NaN ${number(credits.remaining)} cr${leftDays === undefined ? '' : ` · ${leftDays}d`}`
-        const ratio = credits !== undefined && credits.allowance > 0 ? credits.used / credits.allowance : undefined
-        const tone = state.phase === 'error' || (ratio !== undefined && ratio >= 0.9)
-          ? '#e5534b'
-          : ratio !== undefined && ratio >= 0.7 ? '#d29922' : undefined
 
-        const detailRow = (key, labelText, valueText) =>
-          h(
-            'div',
-            { key, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 13, lineHeight: '22px' } },
-            h('span', { style: { opacity: 0.65 } }, labelText),
-            h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, valueText),
-          )
+        const detail = (key, labelText, valueText) => [
+          h('dt', { key: `${key}-dt`, style: labelStyle }, labelText),
+          h('dd', { key: `${key}-dd`, style: valueStyle }, valueText),
+        ]
+
+        const icon = h(
+          'svg',
+          { width: 14, height: 14, viewBox: '0 0 16 16', 'aria-hidden': true, style: { flex: 'none' } },
+          h('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'currentColor', strokeWidth: 1.3 }),
+          h('path', { d: 'M8 8l3.2-3.2', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round' }),
+          h('circle', { cx: 8, cy: 8, r: 1.2, fill: 'currentColor' }),
+        )
 
         const tooltip = open
           ? h(
               'div',
-              {
-                role: 'dialog',
-                style: {
-                  position: 'absolute',
-                  bottom: 'calc(100% + 8px)',
-                  left: 0,
-                  zIndex: 30,
-                  minWidth: 260,
-                  padding: '10px 14px',
-                  borderRadius: 12,
-                  background: 'var(--dsw-specific-menu, #ffffff)',
-                  border: '0.5px solid var(--dsw-alias-border-l1, rgba(0,0,0,0.12))',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                  color: 'var(--dsw-alias-label-primary, inherit)',
-                },
-              },
+              { role: 'dialog', style: panelStyle },
               h(
                 'div',
-                { style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontWeight: 600, marginBottom: 6 } },
-                h('span', null, 'NaN usage'),
+                { style: titleStyle },
+                h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 } }, icon, 'NaN usage'),
                 h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, report === undefined ? '—' : `${number(credits.used)} / ${number(credits.allowance)}`),
               ),
+              h('div', { style: { borderTop: '0.5px solid var(--dsw-alias-border-l2, rgba(0,0,0,0.1))', marginBottom: 10 } }),
               report === undefined
-                ? h('div', { style: { fontSize: 13, opacity: 0.7 } }, state.error?.message ?? 'Querying api.nan.builders…')
+                ? h('div', { style: { opacity: 0.8 } }, state.error?.message ?? 'Querying api.nan.builders…')
                 : h(
-                    'div',
-                    { style: { display: 'flex', flexDirection: 'column' } },
-                    detailRow('left', 'restantes', `${number(credits.remaining)} cr`),
-                    detailRow('period', 'periodo', `${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
-                    detailRow('days', 'días restantes', leftDays === undefined ? '—' : `${leftDays}d`),
-                    detailRow('window', `últimos ${report.windowDays ?? 30} días`, `${tokens(report.totals?.totalTokens)} tok · ${number(report.totals?.credits)} cr`),
-                    detailRow('requests', 'peticiones', number(report.totals?.apiRequests)),
-                    report.allTime === undefined ? null : detailRow('all', 'histórico', `${tokens(report.allTime.totalTokens)} tok`),
-                    h(
-                      'button',
-                      {
-                        type: 'button',
-                        onClick: event => {
-                          event.stopPropagation()
-                          void load()
-                        },
-                        style: { marginTop: 8, alignSelf: 'flex-start', fontSize: 12, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, color: 'var(--dsw-alias-state-business-primary, #4e6fff)' },
+                    'dl',
+                    { style: detailsStyle },
+                    detail('left', 'créditos restantes', `${number(credits.remaining)} cr`),
+                    detail('ratio', 'usado', `${number(credits.used)} / ${number(credits.allowance)}`),
+                    detail('period', 'periodo', `${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
+                    detail('days', 'días restantes', leftDays === undefined ? '—' : `${leftDays}d`),
+                    detail('window', `últimos ${report.windowDays ?? 30} días`, `${tokens(report.totals?.totalTokens)} tok`),
+                    detail('credits', 'créditos', number(report.totals?.credits)),
+                    detail('requests', 'peticiones', number(report.totals?.apiRequests)),
+                    report.allTime === undefined ? null : detail('all', 'histórico', `${tokens(report.allTime.totalTokens)} tok`),
+                  ),
+              report === undefined
+                ? null
+                : h(
+                    'button',
+                    {
+                      type: 'button',
+                      onClick: event => {
+                        event.stopPropagation()
+                        void load()
                       },
-                      state.phase === 'refreshing' ? 'Actualizando…' : 'Actualizar',
-                    ),
+                      style: { marginTop: 10, padding: 0, border: 'none', background: 'transparent', color: 'var(--dsw-alias-state-business-primary, #4e6fff)', fontSize: 12, cursor: 'pointer' },
+                    },
+                    state.phase === 'refreshing' ? 'Actualizando…' : 'Actualizar',
                   ),
             )
           : null
@@ -272,9 +332,15 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         return h(
           'span',
           {
-            style: { position: 'relative', display: 'inline-flex' },
-            onMouseEnter: () => setOpen(true),
-            onMouseLeave: () => setOpen(false),
+            style: { position: 'relative', display: 'inline-flex', minWidth: 0 },
+            onMouseEnter: () => {
+              setOpen(true)
+              setHovered(true)
+            },
+            onMouseLeave: () => {
+              setOpen(false)
+              setHovered(false)
+            },
           },
           h(
             'button',
@@ -287,24 +353,9 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
               },
               onFocus: () => setOpen(true),
               onBlur: () => setOpen(false),
-              style: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                margin: 0,
-                padding: 0,
-                border: 'none',
-                background: 'transparent',
-                color: tone ?? 'inherit',
-                opacity: tone === undefined ? 0.75 : 1,
-                font: 'inherit',
-                fontSize: 12,
-                cursor: 'pointer',
-                fontVariantNumeric: 'tabular-nums',
-                whiteSpace: 'nowrap',
-              },
+              style: pillStyle(open || hovered),
             },
-            h('span', { 'aria-hidden': true, style: { opacity: 0.8 } }, '◈'),
+            icon,
             label,
           ),
           tooltip,
