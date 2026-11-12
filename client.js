@@ -216,18 +216,23 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
               : `${number(credits.used)} / ${number(credits.allowance)} credits used · period ends ${shortDate(credits.periodEnd)}`,
             onClick: () => void load(),
             style: {
-              alignSelf: 'flex-start',
-              margin: '4px 12px 0',
-              padding: '2px 10px',
-              borderRadius: 999,
-              border: '1px solid var(--dsh-border-subtle, rgba(127,127,127,0.35))',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              margin: 0,
+              padding: 0,
+              border: 'none',
               background: 'transparent',
-              color: tone ?? 'var(--dsh-text-secondary, #8b93a7)',
+              color: tone ?? 'inherit',
+              opacity: tone === undefined ? 0.75 : 1,
+              font: 'inherit',
               fontSize: 12,
               cursor: 'pointer',
               fontVariantNumeric: 'tabular-nums',
+              whiteSpace: 'nowrap',
             },
           },
+          h('span', { 'aria-hidden': true, style: { opacity: 0.8 } }, '◈'),
           label,
         )
       }
@@ -250,14 +255,15 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
               NanUsageSection,
             ),
           )
-          // Always-visible chip above the composer, the web counterpart of the
-          // TUI footer field.
-          ctx.slots.inject('conversation.input.dock', () =>
+          // The composer's bottom stats row (turns · tok/s · tokens · cache) is
+          // a `conversation.composer.dock` list of pills; this adds one more,
+          // matching the TUI footer field.
+          ctx.slots.inject('conversation.composer.dock', () =>
             ctx.slots.register(
               {
-                name: 'conversation.input.dock',
-                id: 'nan-usage-chip',
-                order: 40,
+                name: 'conversation.composer.dock',
+                id: 'nan-usage',
+                order: 2,
                 inject: () => ({}),
               },
               NanUsageChip,
