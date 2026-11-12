@@ -3,7 +3,9 @@ name: publish
 # Tag-driven release. A `v*` tag must equal package.json's version.
 # Prefer npm trusted publishing (npmjs.com -> package -> Trusted Publisher,
 # pointing at this repo + workflow); it needs no NPM_TOKEN secret.
-# Without that setup this job fails at the publish step on purpose.
+#
+# If the version is already on npm (published manually, or the tag re-pushed),
+# the job reports it and succeeds instead of failing on "cannot publish over".
 on:
   push:
     tags: ['v*']
@@ -27,4 +29,16 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           test "v$version" = "${GITHUB_REF_NAME}" || { echo "tag ${GITHUB_REF_NAME} != v$version"; exit 1; }
-      - run: npm publish --provenance --access public
+      - name: already published?
+        id: check
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if npm view "dsh-nan-provider@$version" version >/dev/null 2>&1; then
+            echo "dsh-nan-provider@$version is already on npm; skipping publish"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: publish
+        if: steps.check.outputs.published == 'false'
+        run: npm publish --provenance --access public
