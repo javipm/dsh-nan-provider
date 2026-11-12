@@ -30,9 +30,10 @@ defecto y muestra créditos y gasto. Basado en la idea de
 - **`/nan-usage`** abre la pestaña; **`/nan-usage text`** devuelve el informe en el chat.
 - **Chip en el footer** (`NaN 6,195 cr · 14d`) en la línea de estado, con el
   desglose al pasar el ratón. `footer: false` lo apaga.
-- **Tarjeta en Ajustes** (Desktop/web): créditos, periodo y gasto por modelo,
-  con botón de refresco. El navegador nunca ve la clave: consulta una ruta
-  loopback autenticada del host (`/api/nan-provider/usage`).
+- **Desktop/web**: un **chip siempre visible sobre el compositor**
+  (`NaN 6,195 cr · 14d`, refresco cada 5 min o al clicarlo) y una **tarjeta en
+  Ajustes** con el desglose completo. El navegador nunca ve la clave: consulta
+  una ruta loopback autenticada del host (`/api/nan-provider/usage`).
 
 > El panel Info del sidebar es código del host con secciones fijas; la vía
 > soportada es una pestaña propia. El chip se une a la línea de estado existente

@@ -29,9 +29,10 @@ the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 - **`/nan-usage`** opens the tab; **`/nan-usage text`** returns the report in chat.
 - **Footer chip** (`NaN 6,195 cr · 14d`) on the status row, with the full
   breakdown on hover. `footer: false` turns it off.
-- **Settings card** (Desktop/web): credits, period and per-model spend with a
-  refresh button. The browser never sees the key: it calls an authenticated
-  loopback route on the host (`/api/nan-provider/usage`).
+- **Desktop/web**: an **always-visible chip above the composer**
+  (`NaN 6,195 cr · 14d`, refreshed every 5 min or on click) plus a **Settings
+  card** with the full breakdown. The browser never sees the key: it calls an
+  authenticated loopback route on the host (`/api/nan-provider/usage`).
 
 > The built-in Info panel is host code with fixed sections; a dedicated tab is
 > the supported route. The chip joins the existing status row because there is
