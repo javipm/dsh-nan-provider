@@ -50,6 +50,8 @@ and default model are checked.
 
 The plugin finds the provider by id `nan`, by a `nan.builders` `baseURL` or by a
 “NaN” label, then uses its `apiKeyEnv` (and `baseURL`) for the `/nan-usage` call.
+Without a NaN route the query fails and points at `/nan-setup`: there is no
+loose key or URL fallback.
 The key is resolved per operation from the harness credential store
 (`~/.dsh/.credentials.yaml`) and, failing that, from the environment variable.
 When neither has it, `/nan-setup` prompts for it (visible while typing) and
@@ -66,8 +68,8 @@ Optional; set it on the `nan` row of
 | key | default | what it does |
 | --- | --- | --- |
 | `provider` | `nan` | route id detected and configured |
-| `apiKeyEnv` | `OPENAI_API_KEY` | fallback credential ref |
-| `baseUrl` | `https://api.nan.builders/v1` | fallback API base |
+| `apiKeyEnv` | `OPENAI_API_KEY` | credential ref `/nan-setup` uses when creating the route |
+| `baseUrl` | `https://api.nan.builders/v1` | base `/nan-setup` uses when creating the route |
 | `windowDays` | `30` | breakdown window (1–90) |
 | `autoRefreshSeconds` | `60` | refresh while visible (`0` = off) |
 | `lowCreditsPercent` | `10` | `warning`/`error` badge threshold |

@@ -50,7 +50,8 @@ clave y el modelo por defecto.
 
 El plugin detecta el proveedor por id `nan`, por `baseURL` de `nan.builders` o
 por etiqueta «NaN», y usa su `apiKeyEnv` (y su `baseURL`) para consultar
-`/nan-usage`.
+`/nan-usage`. Sin una ruta NaN configurada la consulta falla con un aviso para
+ejecutar `/nan-setup`: no hay fallback a una clave o URL suelta.
 
 La clave se resuelve por operación desde el store de credenciales del harness
 (`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno. Si
@@ -68,8 +69,8 @@ Opcional; se ajusta en la fila `nan` de
 | clave | por defecto | qué hace |
 | --- | --- | --- |
 | `provider` | `nan` | id de la ruta que se detecta y configura |
-| `apiKeyEnv` | `OPENAI_API_KEY` | ref de credencial de respaldo |
-| `baseUrl` | `https://api.nan.builders/v1` | base de la API de respaldo |
+| `apiKeyEnv` | `OPENAI_API_KEY` | ref de credencial que usa `/nan-setup` al crear la ruta |
+| `baseUrl` | `https://api.nan.builders/v1` | base que usa `/nan-setup` al crear la ruta |
 | `windowDays` | `30` | ventana del desglose (1–90) |
 | `autoRefreshSeconds` | `60` | refresco con el panel visible (`0` lo apaga) |
 | `lowCreditsPercent` | `10` | umbral del badge `warning`/`error` |

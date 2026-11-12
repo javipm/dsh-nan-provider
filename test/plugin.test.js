@@ -63,7 +63,9 @@ function fakeFetch() {
   return { calls, fetchImpl }
 }
 
-function mount({ withPanels = true, withCommands = true, apiKey = 'sk-test', fetchImpl } = {}) {
+const usageCommand = captured => captured.commands.find(command => command.name === 'nan-usage')
+
+function mount({ withPanels = true, withCommands = true, withProvider = true, apiKey = 'sk-test', fetchImpl } = {}) {
   const captured = { panels: [], commands: [], opened: [], effects: [] }
   const panels = withPanels
     ? {
@@ -88,11 +90,27 @@ function mount({ withPanels = true, withCommands = true, apiKey = 'sk-test', fet
         },
       }
     : undefined
+  const settings = withProvider
+    ? {
+        describe: () => [
+          {
+            ns: 'llm-pi-ai',
+            revision: 1,
+            value: {
+              providers: {
+                nan: { displayName: 'NaN', baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'OPENAI_API_KEY' },
+              },
+            },
+          },
+        ],
+      }
+    : undefined
   const ctx = {
     get(name) {
       if (name === 'tuiPanels') return panels
       if (name === 'commands') return commands
       if (name === 'credentials') return { resolve: async () => ({ value: apiKey }) }
+      if (name === 'settings') return settings
       return undefined
     },
     inject(deps, callback) {
@@ -122,14 +140,13 @@ test('apply registers the sidebar panel and the usage command', () => {
   assert.equal(panel.icon, '◈')
   assert.equal(typeof panel.component, 'function')
 
-  assert.equal(captured.commands.length, 1)
-  assert.equal(captured.commands[0].name, 'nan-usage')
-  assert.equal(captured.commands[0].recordInput, false)
+  assert.deepEqual(captured.commands.map(command => command.name).sort(), ['nan-setup', 'nan-usage'])
+  assert.equal(usageCommand(captured).recordInput, false)
 })
 
 test('/nan-usage opens the panel without spending a request', async () => {
   const captured = mount()
-  const outcome = await captured.commands[0].handler({ rawInput: '' })
+  const outcome = await usageCommand(captured).handler({ rawInput: '' })
   assert.deepEqual(captured.opened, ['nan-usage:usage'])
   assert.deepEqual(outcome, { kind: 'success', text: '' })
 })
@@ -137,7 +154,7 @@ test('/nan-usage opens the panel without spending a request', async () => {
 test('/nan-usage text returns the compact report', async () => {
   const { fetchImpl, calls } = fakeFetch()
   const captured = mount({ fetchImpl })
-  const outcome = await captured.commands[0].handler({ rawInput: 'text' })
+  const outcome = await usageCommand(captured).handler({ rawInput: 'text' })
 
   assert.equal(outcome.kind, 'success')
   assert.match(outcome.text, /NaN usage · 733\.7\/7,000 credits used/)
@@ -151,14 +168,21 @@ test('/nan-usage text returns the compact report', async () => {
 test('without panels, /nan-usage falls back to the text report', async () => {
   const { fetchImpl } = fakeFetch()
   const captured = mount({ withPanels: false, fetchImpl })
-  const outcome = await captured.commands[0].handler({ rawInput: '' })
+  const outcome = await usageCommand(captured).handler({ rawInput: '' })
   assert.equal(outcome.kind, 'success')
   assert.match(outcome.text, /NaN usage/)
 })
 
 test('a missing API key becomes a readable command error', async () => {
   const captured = mount({ withPanels: false, apiKey: '' })
-  const outcome = await captured.commands[0].handler({ rawInput: 'text' })
+  const outcome = await usageCommand(captured).handler({ rawInput: 'text' })
   assert.equal(outcome.kind, 'error')
   assert.match(outcome.text, /No API key/)
+})
+
+test('without a NaN provider, /nan-usage fails with a clear message', async () => {
+  const captured = mount({ withPanels: false, withProvider: false })
+  const outcome = await usageCommand(captured).handler({ rawInput: '' })
+  assert.equal(outcome.kind, 'error')
+  assert.match(outcome.text, /No NaN provider configured/)
 })
