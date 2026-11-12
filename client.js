@@ -187,6 +187,7 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
 
       function NanUsageChip() {
         const [state, setState] = React.useState({ phase: 'loading' })
+        const [open, setOpen] = React.useState(false)
         const load = React.useCallback(async () => {
           const result = await fetchUsage()
           setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
@@ -197,43 +198,116 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
           return () => clearInterval(timer)
         }, [load])
 
-        const credits = state.report?.credits
+        const report = state.report
+        const credits = report?.credits
         const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
-        const label = state.report === undefined
+        const label = report === undefined
           ? state.phase === 'loading' ? 'NaN …' : 'NaN —'
           : `NaN ${number(credits.remaining)} cr${leftDays === undefined ? '' : ` · ${leftDays}d`}`
-        const tone = state.phase === 'error'
+        const ratio = credits !== undefined && credits.allowance > 0 ? credits.used / credits.allowance : undefined
+        const tone = state.phase === 'error' || (ratio !== undefined && ratio >= 0.9)
           ? '#e5534b'
-          : credits !== undefined && credits.allowance > 0 && credits.used / credits.allowance >= 0.9
-            ? '#e5534b'
-            : undefined
+          : ratio !== undefined && ratio >= 0.7 ? '#d29922' : undefined
+
+        const detailRow = (key, labelText, valueText) =>
+          h(
+            'div',
+            { key, style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontSize: 13, lineHeight: '22px' } },
+            h('span', { style: { opacity: 0.65 } }, labelText),
+            h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, valueText),
+          )
+
+        const tooltip = open
+          ? h(
+              'div',
+              {
+                role: 'dialog',
+                style: {
+                  position: 'absolute',
+                  bottom: 'calc(100% + 8px)',
+                  left: 0,
+                  zIndex: 30,
+                  minWidth: 260,
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  background: 'var(--dsw-specific-menu, #ffffff)',
+                  border: '0.5px solid var(--dsw-alias-border-l1, rgba(0,0,0,0.12))',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  color: 'var(--dsw-alias-label-primary, inherit)',
+                },
+              },
+              h(
+                'div',
+                { style: { display: 'flex', justifyContent: 'space-between', gap: 24, fontWeight: 600, marginBottom: 6 } },
+                h('span', null, 'NaN usage'),
+                h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, report === undefined ? '—' : `${number(credits.used)} / ${number(credits.allowance)}`),
+              ),
+              report === undefined
+                ? h('div', { style: { fontSize: 13, opacity: 0.7 } }, state.error?.message ?? 'Querying api.nan.builders…')
+                : h(
+                    'div',
+                    { style: { display: 'flex', flexDirection: 'column' } },
+                    detailRow('left', 'restantes', `${number(credits.remaining)} cr`),
+                    detailRow('period', 'periodo', `${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
+                    detailRow('days', 'días restantes', leftDays === undefined ? '—' : `${leftDays}d`),
+                    detailRow('window', `últimos ${report.windowDays ?? 30} días`, `${tokens(report.totals?.totalTokens)} tok · ${number(report.totals?.credits)} cr`),
+                    detailRow('requests', 'peticiones', number(report.totals?.apiRequests)),
+                    report.allTime === undefined ? null : detailRow('all', 'histórico', `${tokens(report.allTime.totalTokens)} tok`),
+                    h(
+                      'button',
+                      {
+                        type: 'button',
+                        onClick: event => {
+                          event.stopPropagation()
+                          void load()
+                        },
+                        style: { marginTop: 8, alignSelf: 'flex-start', fontSize: 12, cursor: 'pointer', background: 'transparent', border: 'none', padding: 0, color: 'var(--dsw-alias-state-business-primary, #4e6fff)' },
+                      },
+                      state.phase === 'refreshing' ? 'Actualizando…' : 'Actualizar',
+                    ),
+                  ),
+            )
+          : null
+
         return h(
-          'button',
+          'span',
           {
-            type: 'button',
-            title: state.report === undefined
-              ? state.error?.message ?? 'NaN usage'
-              : `${number(credits.used)} / ${number(credits.allowance)} credits used · period ends ${shortDate(credits.periodEnd)}`,
-            onClick: () => void load(),
-            style: {
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              margin: 0,
-              padding: 0,
-              border: 'none',
-              background: 'transparent',
-              color: tone ?? 'inherit',
-              opacity: tone === undefined ? 0.75 : 1,
-              font: 'inherit',
-              fontSize: 12,
-              cursor: 'pointer',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            },
+            style: { position: 'relative', display: 'inline-flex' },
+            onMouseEnter: () => setOpen(true),
+            onMouseLeave: () => setOpen(false),
           },
-          h('span', { 'aria-hidden': true, style: { opacity: 0.8 } }, '◈'),
-          label,
+          h(
+            'button',
+            {
+              type: 'button',
+              'aria-expanded': open,
+              onClick: () => {
+                setOpen(true)
+                void load()
+              },
+              onFocus: () => setOpen(true),
+              onBlur: () => setOpen(false),
+              style: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                color: tone ?? 'inherit',
+                opacity: tone === undefined ? 0.75 : 1,
+                font: 'inherit',
+                fontSize: 12,
+                cursor: 'pointer',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+              },
+            },
+            h('span', { 'aria-hidden': true, style: { opacity: 0.8 } }, '◈'),
+            label,
+          ),
+          tooltip,
         )
       }
 
