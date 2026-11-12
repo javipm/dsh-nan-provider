@@ -50,8 +50,7 @@ clave y el modelo por defecto.
 
 El plugin detecta el proveedor por id `nan`, por `baseURL` de `nan.builders` o
 por etiqueta «NaN», y usa su `apiKeyEnv` (y su `baseURL`) para consultar
-`/nan-usage`. Si no encuentra proveedor, cae a `OPENAI_API_KEY` y a
-`https://api.nan.builders/v1`.
+`/nan-usage`.
 
 La clave se resuelve por operación desde el store de credenciales del harness
 (`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno. Si
