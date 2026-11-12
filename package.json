@@ -26,6 +26,7 @@
     "README.md",
     "README.en.md",
     "docs/panel.jpg",
+    "NOTICE",
     "LICENSE"
   ],
   "engines": {

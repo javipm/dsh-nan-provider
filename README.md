@@ -118,9 +118,11 @@ dsh-plugin.json     manifiesto 0.15 (metadata de ecosistema)
 
 La idea de generar el catálogo desde una fuente pública y corregirlo con
 overrides medidos —además del filtrado de endpoints no-chat— viene de
-[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider) (MIT). Los
-valores y las notas de procedencia de `lib/overrides.js` salen de su
-`scripts/manual-overrides.ts`.
+[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider), MIT
+(Copyright (c) 2026 gtrabanco). Los valores y las notas de procedencia de
+`lib/overrides.js` salen de su `scripts/manual-overrides.ts`; la licencia y la
+atribución completa están en [LICENSE](LICENSE) y [NOTICE](NOTICE). Este
+proyecto se distribuye con la misma licencia MIT.
 
 Los modelos nuevos que el endpoint anuncie sin metadatos entran con el sobre
 conservador de pi-nan-provider: 128k de contexto, 4k de salida, solo texto y sin

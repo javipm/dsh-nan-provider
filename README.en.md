@@ -116,9 +116,11 @@ dsh-plugin.json     0.15 manifest (ecosystem metadata)
 
 The idea of generating the catalog from a public source and correcting it with
 measured overrides — plus the non-chat endpoint filtering — comes from
-[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider) (MIT). The values
-and provenance notes in `lib/overrides.js` come from its
-`scripts/manual-overrides.ts`.
+[pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider), MIT
+(Copyright (c) 2026 gtrabanco). The values and provenance notes in
+`lib/overrides.js` come from its `scripts/manual-overrides.ts`; the full license
+and attribution live in [LICENSE](LICENSE) and [NOTICE](NOTICE). This project
+ships under the same MIT license.
 
 Live models the endpoint announces without metadata get pi-nan-provider's
 conservative envelope: 128k context, 4k output, text only, no adjustable
