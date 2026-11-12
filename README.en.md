@@ -30,6 +30,27 @@ the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 > the supported route. The chip joins the existing status row because there is
 > no seam for an extra footer line.
 
+## One setup for TUI and Desktop
+
+Each DSH profile (`dsh-tui`, `desktop`) keeps its own configuration, but the key
+and this plugin bridge them:
+
+- The key lives in the shared credential store (`~/.dsh/.credentials.yaml`).
+- `/nan-setup` publishes the provider to **`~/.dsh/nan-provider.json`**.
+- On activation, the plugin in any profile reads that file and, when the `nan`
+  route is missing or the model list is behind, applies it through its own
+  settings service. It never hand-edits YAML or touches the other profile.
+
+So you configure once and TUI and Desktop share provider and catalog. The
+`desktop` profile is app-managed: install the plugin there with
+**Settings → Plugins → Add plugin** and `dsh-nan-provider`.
+
+Desktop has no panel or footer chip (TUI seams); `/nan-setup` and `/nan-usage`
+(text report) work.
+
+Same on macOS, Windows and Linux: plain ESM with `fetch`, no native
+dependencies. Config lives under `~/.dsh` (`%USERPROFILE%\.dsh` on Windows).
+
 ## Install
 
 ```bash
@@ -88,7 +109,7 @@ Optional; set it on the `nan` row of
 
 ```bash
 npm install --include=dev   # NODE_ENV=production skips devDependencies otherwise
-npm test                    # 37 tests; the 3 render tests use react-test-renderer
+npm test                    # 49 tests; the 3 render tests use react-test-renderer
 ```
 
 No runtime dependencies: only `fetch` and the harness services. The panel uses
@@ -102,6 +123,7 @@ lib/index.js        panel, /nan-usage, /nan-setup and footer (cordis inject)
 lib/catalog.js      canonical NaN provider profile (11 models)
 lib/provider.js     nan route detection (settings)
 lib/setup.js        /nan-setup: provider + key + default model
+lib/shared.js       shared file and cross-profile auto-sync
 lib/overrides.js    measured catalog overrides (pi-nan-provider)
 lib/api.js          /usage client + defensive normalization
 lib/source.js       shared cache and route/key resolution

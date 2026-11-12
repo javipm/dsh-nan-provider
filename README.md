@@ -30,6 +30,28 @@ idea de [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 > soportada es una pestaña propia. El chip se une a la línea de estado existente
 > porque no hay seam para una segunda línea de footer.
 
+## Un setup para TUI y Desktop
+
+Cada perfil de DSH (`dsh-tui`, `desktop`) guarda su propia configuración, pero la
+clave y este plugin los unen:
+
+- La clave vive en el credential store común (`~/.dsh/.credentials.yaml`).
+- `/nan-setup` publica el proveedor en **`~/.dsh/nan-provider.json`**.
+- Al arrancar, el plugin de cualquier perfil lee ese fichero y, si le falta la
+  ruta `nan` o va por detrás en modelos, la aplica con su propio servicio de
+  settings. No edita YAML a mano ni toca el otro perfil.
+
+Así configuras una vez y TUI y Desktop comparten proveedor y catálogo. El perfil
+`desktop` solo lo gestiona la app: instala el plugin allí con
+**Ajustes → Plugins → Add plugin** y pon `dsh-nan-provider`.
+
+En Desktop no hay panel ni chip (son seams del TUI); tienes `/nan-setup` y
+`/nan-usage` como informe de texto.
+
+Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
+dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en
+Windows).
+
 ## Instalación
 
 ```bash
@@ -90,7 +112,7 @@ Opcional; se ajusta en la fila `nan` de
 
 ```bash
 npm install --include=dev   # NODE_ENV=production omite devDependencies si no se lo pides
-npm test                    # 37 tests; los 3 de render usan react-test-renderer
+npm test                    # 49 tests; los 3 de render usan react-test-renderer
 ```
 
 Sin dependencias de runtime: solo `fetch` y los servicios del harness. El panel
@@ -104,6 +126,7 @@ lib/index.js        panel, /nan-usage, /nan-setup y footer (cordis inject)
 lib/catalog.js      perfil canónico del proveedor NaN (11 modelos)
 lib/provider.js     detección de la ruta nan (settings)
 lib/setup.js        /nan-setup: provider + clave + modelo por defecto
+lib/shared.js       fichero compartido y auto-sync entre perfiles
 lib/overrides.js    overrides medidos del catálogo (pi-nan-provider)
 lib/api.js          cliente de /usage + normalización defensiva
 lib/source.js       caché compartida y resolución de la ruta/clave
