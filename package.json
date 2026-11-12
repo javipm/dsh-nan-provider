@@ -1,7 +1,7 @@
 {
-  "name": "dsh-nan-usage",
-  "version": "0.1.0",
-  "description": "NaN subscription usage in the DeepSeek Harness TUI: credits left, billing period, 30-day tokens and per-model spend, as a sidebar panel plus a /usage command.",
+  "name": "dsh-nan",
+  "version": "0.2.0",
+  "description": "NaN (nan.builders) setup and subscription usage for the DeepSeek Harness TUI: creates the provider, stores the key, sets the default model and shows credits in a sidebar panel.",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -50,10 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/javipm/dsh-nan-usage.git"
+    "url": "git+https://github.com/javipm/dsh-nan.git"
   },
-  "homepage": "https://github.com/javipm/dsh-nan-usage#readme",
+  "homepage": "https://github.com/javipm/dsh-nan#readme",
   "bugs": {
-    "url": "https://github.com/javipm/dsh-nan-usage/issues"
+    "url": "https://github.com/javipm/dsh-nan/issues"
   }
 }

@@ -8,8 +8,8 @@
 # (`OPENAI_API_KEY`, the nan.builders key) and falls back to the environment
 # variable of that name.
 - insert:
-    - id: nan-usage
-      name: 'dsh-nan-usage'
+    - id: nan
+      name: 'dsh-nan'
       config:
         apiKeyEnv: OPENAI_API_KEY
         baseUrl: https://api.nan.builders/v1
@@ -20,3 +20,6 @@
         panelTitle: NaN usage
         lowCreditsPercent: 10
         footer: true
+        provider: nan
+        setupModel: deepseek-v4-flash
+        setupEffort: max
