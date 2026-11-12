@@ -1,0 +1,45 @@
+name: DSH compatibility
+
+# Checks the plugin against the DSH releases it claims to support. The range is
+# `engines.dsh`; this matrix pins the boundaries (oldest supported, latest
+# published) plus the installed default so a runtime drift fails loudly.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        dsh: ['0.2.0-rc.2', '0.2.1-rc.4', '0.2.2-rc.1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install host packages for ${{ matrix.dsh }}
+        run: npm install --no-save --no-audit --no-fund @deepseek-ai/dsh-app-boot@${{ matrix.dsh }}
+      - name: Plugin declares compatibility with ${{ matrix.dsh }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict'
+          import { readFileSync } from 'node:fs'
+          import { evaluatePluginCompatibility, getDshRuntimeVersion } from '@deepseek-ai/dsh-app-boot'
+
+          const runtime = getDshRuntimeVersion()
+          assert.equal(runtime, process.env.DSH_VERSION, `host reported ${runtime}`)
+          const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
+          assert.equal(evaluatePluginCompatibility(manifest), undefined)
+          const plugin = await import('./lib/index.js')
+          assert.equal(typeof plugin.apply, 'function')
+          console.log(`compatible with DSH ${runtime}`)
+          NODE
+        env:
+          DSH_VERSION: ${{ matrix.dsh }}

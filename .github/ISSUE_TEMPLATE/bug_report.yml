@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in dsh-nan-provider does not work
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please do not paste API keys, tokens or account data.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      description: Output of `npm view dsh-nan-provider version` (or the version installed in the profile).
+    validations:
+      required: true
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH version
+      description: Output of `dsh --version`, and whether it is the TUI or Desktop.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where does it happen?
+      options:
+        - TUI (dsh-tui)
+        - Desktop
+        - Both
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run /nan-setup
+        2. Open /nan-usage
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Include sanitized error output. Never include `sk-` keys.
+    validations:
+      required: true

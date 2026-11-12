@@ -5,6 +5,10 @@ subscription inside the DeepSeek Harness TUI ([dsh-tui](https://github.com/ccch1
 key, sets the default model and shows credits and spend in the sidebar. Based on
 the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
+[![npm](https://img.shields.io/npm/v/dsh-nan-provider.svg?color=blue)](https://www.npmjs.com/package/dsh-nan-provider)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DSH](https://img.shields.io/badge/DSH-%3E%3D0.2.0--rc.2-6f42c1.svg)](https://github.com/deepseek-ai/deepseek-harness)
+
 🇬🇧 **English** · 🇪🇸 [Español](README.md)
 
 <p align="center">
@@ -25,6 +29,9 @@ the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 - **`/nan-usage`** opens the tab; **`/nan-usage text`** returns the report in chat.
 - **Footer chip** (`NaN 6,195 cr · 14d`) on the status row, with the full
   breakdown on hover. `footer: false` turns it off.
+- **Settings card** (Desktop/web): credits, period and per-model spend with a
+  refresh button. The browser never sees the key: it calls an authenticated
+  loopback route on the host (`/api/nan-provider/usage`).
 
 > The built-in Info panel is host code with fixed sections; a dedicated tab is
 > the supported route. The chip joins the existing status row because there is

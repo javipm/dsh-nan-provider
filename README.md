@@ -6,6 +6,10 @@ como en **Desktop**: crea el proveedor, guarda la clave, deja el modelo por
 defecto y muestra créditos y gasto. Basado en la idea de
 [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
+[![npm](https://img.shields.io/npm/v/dsh-nan-provider.svg?color=blue)](https://www.npmjs.com/package/dsh-nan-provider)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DSH](https://img.shields.io/badge/DSH-%3E%3D0.2.0--rc.2-6f42c1.svg)](https://github.com/deepseek-ai/deepseek-harness)
+
 🇬🇧 [English](README.en.md) · 🇪🇸 **Español**
 
 <p align="center">
@@ -26,6 +30,9 @@ defecto y muestra créditos y gasto. Basado en la idea de
 - **`/nan-usage`** abre la pestaña; **`/nan-usage text`** devuelve el informe en el chat.
 - **Chip en el footer** (`NaN 6,195 cr · 14d`) en la línea de estado, con el
   desglose al pasar el ratón. `footer: false` lo apaga.
+- **Tarjeta en Ajustes** (Desktop/web): créditos, periodo y gasto por modelo,
+  con botón de refresco. El navegador nunca ve la clave: consulta una ruta
+  loopback autenticada del host (`/api/nan-provider/usage`).
 
 > El panel Info del sidebar es código del host con secciones fijas; la vía
 > soportada es una pestaña propia. El chip se une a la línea de estado existente

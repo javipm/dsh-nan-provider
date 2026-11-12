@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement for dsh-nan-provider
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve?
+      description: Describe the situation, not only the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface?
+      options:
+        - TUI (dsh-tui)
+        - Desktop
+        - Both
+      default: 2
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Compatibility
+      options:
+        - label: It works without adding runtime dependencies (fetch + harness services only)
+        - label: I checked it does not change the existing `providers.<route>` shape
