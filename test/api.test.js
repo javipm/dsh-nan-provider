@@ -154,10 +154,10 @@ test('resolveApiKey prefers the credential store and falls back to the environme
   const ctx = {
     get(name) {
       if (name !== 'credentials') return undefined
-      return { resolve: async ref => (ref === 'OPENAI_API_KEY' ? { value: 'sk-from-store' } : undefined) }
+      return { resolve: async ref => (ref === 'NAN_API_KEY' ? { value: 'sk-from-store' } : undefined) }
     },
   }
-  assert.equal(await resolveApiKey(ctx, 'OPENAI_API_KEY'), 'sk-from-store')
+  assert.equal(await resolveApiKey(ctx, 'NAN_API_KEY'), 'sk-from-store')
 
   const broken = { get: () => ({ resolve: async () => { throw new Error('no store') } }) }
   const previous = process.env.NAN_USAGE_TEST_KEY

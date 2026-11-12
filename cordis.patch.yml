@@ -4,14 +4,14 @@
 # when those services exist. Every config key below is optional; these are
 # the defaults, repeated here so the profile shows what can be tuned.
 #
-# API key: the plugin resolves the same credential ref the LLM provider uses
-# (`OPENAI_API_KEY`, the nan.builders key) and falls back to the environment
-# variable of that name.
+# API key: the plugin uses its own credential ref, `NAN_API_KEY`, so a separate
+# OpenAI provider can keep `OPENAI_API_KEY` for itself. When the ref is unset the
+# value comes from the environment variable of the same name.
 - insert:
     - id: nan
       name: 'dsh-nan-provider'
       config:
-        apiKeyEnv: OPENAI_API_KEY
+        apiKeyEnv: NAN_API_KEY
         baseUrl: https://api.nan.builders/v1
         windowDays: 30
         autoRefreshSeconds: 60

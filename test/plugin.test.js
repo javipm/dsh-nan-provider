@@ -98,7 +98,7 @@ function mount({ withPanels = true, withCommands = true, withProvider = true, ap
             revision: 1,
             value: {
               providers: {
-                nan: { displayName: 'NaN', baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'OPENAI_API_KEY' },
+                nan: { displayName: 'NaN', baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'NAN_API_KEY' },
               },
             },
           },

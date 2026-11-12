@@ -45,7 +45,7 @@ function harness({
     },
   }
   const credentials = {
-    resolve: async ref => (ref === 'OPENAI_API_KEY' && key !== '' ? { value: key } : undefined),
+    resolve: async ref => (ref === 'NAN_API_KEY' && key !== '' ? { value: key } : undefined),
     set: async (ref, value) => {
       state.stored = { ref, value }
     },
@@ -83,7 +83,7 @@ function harness({
 const config = {
   provider: 'nan',
   baseUrl: 'https://api.nan.builders/v1',
-  apiKeyEnv: 'OPENAI_API_KEY',
+  apiKeyEnv: 'NAN_API_KEY',
   setupModel: 'deepseek-v4-flash',
   setupEffort: 'max',
   fetchImpl: async () => new Response(JSON.stringify({ data: [] }), { status: 200 }),
@@ -121,7 +121,7 @@ test('setup creates the provider, stores the key and refreshes the models', asyn
   const written = state.providers.nan
   assert.equal(written.displayName, 'NaN')
   assert.equal(written.baseURL, 'https://api.nan.builders/v1')
-  assert.equal(written.apiKeyEnv, 'OPENAI_API_KEY')
+  assert.equal(written.apiKeyEnv, 'NAN_API_KEY')
   assert.equal(written.models.length, NAN_MODELS.length + 1)
   assert.deepEqual(state.saved, { provider: 'nan', model: 'deepseek-v4-flash' })
   assert.match(describeNanSetup(result), /Provider nan: created/)
@@ -129,7 +129,7 @@ test('setup creates the provider, stores the key and refreshes the models', asyn
 })
 
 test('setup refreshes an existing provider without touching the other fields', async () => {
-  const existing = { displayName: 'My NaN', baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'OPENAI_API_KEY', models: NAN_MODELS.slice(0, 2) }
+  const existing = { displayName: 'My NaN', baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'NAN_API_KEY', models: NAN_MODELS.slice(0, 2) }
   const { ctx, state } = harness({ providers: { nan: existing } })
   const result = await runNanSetup(ctx, { ...config, fetchImpl: async () => new Response(JSON.stringify({ data: [{ id: 'glm5.3' }] }), { status: 200 }) })
 
@@ -151,7 +151,7 @@ test('setup asks for the key and stores it when missing', async () => {
   assert.equal(result.ok, true)
   assert.equal(result.keyConfigured, true)
   assert.equal(result.keyStored, true)
-  assert.deepEqual(state.stored, { ref: 'OPENAI_API_KEY', value: 'sk-typed' })
+  assert.deepEqual(state.stored, { ref: 'NAN_API_KEY', value: 'sk-typed' })
   assert.equal(state.fetchedWith.auth, 'Bearer sk-typed')
   assert.match(state.promptTitle, /visible while typing/)
 })

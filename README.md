@@ -1,7 +1,7 @@
 # dsh-nan-provider
 
 Configura y vigila tu suscripción **NaN** ([nan.builders](https://nan.builders))
-dentro de la TUI de DeepSeek Harness: crea el proveedor, guarda la clave, deja
+dentro de la **TUI** ([dsh-tui](https://github.com/ccch1mneyyy/dsh-TUI)) de DeepSeek Harness: crea el proveedor, guarda la clave, deja
 el modelo por defecto y muestra créditos y gasto en el sidebar. Basado en la
 idea de [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
@@ -53,10 +53,13 @@ por etiqueta «NaN», y usa su `apiKeyEnv` (y su `baseURL`) para consultar
 `/nan-usage`. Sin una ruta NaN configurada la consulta falla con un aviso para
 ejecutar `/nan-setup`: no hay fallback a una clave o URL suelta.
 
-La clave se resuelve por operación desde el store de credenciales del harness
-(`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno. Si
-tampoco hay, `/nan-setup` la pide en un diálogo (visible mientras escribes) y
-la guarda en el store. El fichero nunca se lee directamente.
+El ref de credencial es **`NAN_API_KEY`**, propio del plugin: un proveedor
+OpenAI aparte puede seguir usando `OPENAI_API_KEY` sin que se pisen. Se
+resuelve por operación desde el store de credenciales del harness
+(`~/.dsh/.credentials.yaml`) y, si no está, desde la variable de entorno
+`NAN_API_KEY`. Si tampoco hay, `/nan-setup` la pide en un diálogo (visible
+mientras escribes) y la guarda en el store. El fichero nunca se lee
+directamente.
 
 El endpoint es `GET {baseURL}/usage` (documentado en
 `https://nan.builders/openapi.json`); no consume créditos.
@@ -66,22 +69,22 @@ El endpoint es `GET {baseURL}/usage` (documentado en
 Opcional; se ajusta en la fila `nan` de
 `~/.dsh/profiles/dsh-tui/cordis.patch.yml`:
 
-| clave | por defecto | qué hace |
-| --- | --- | --- |
-| `provider` | `nan` | id de la ruta que se detecta y configura |
-| `apiKeyEnv` | `OPENAI_API_KEY` | ref de credencial que usa `/nan-setup` al crear la ruta |
-| `baseUrl` | `https://api.nan.builders/v1` | base que usa `/nan-setup` al crear la ruta |
-| `windowDays` | `30` | ventana del desglose (1–90) |
-| `autoRefreshSeconds` | `60` | refresco con el panel visible (`0` lo apaga) |
-| `lowCreditsPercent` | `10` | umbral del badge `warning`/`error` |
-| `commandName` | `usage` | nombre del comando de consumo |
-| `panelId` | `usage` | id interno del panel |
-| `panelTitle` | `NaN usage` | título de la pestaña |
-| `footer` | `true` | chip de créditos en el footer |
-| `footerRefreshMinutes` | `15` | refresco del chip |
-| `cacheSeconds` | `20` | caché compartida panel/comando |
-| `setupModel` | `deepseek-v4-flash` | modelo que fija `/nan-setup` |
-| `setupEffort` | `max` | effort que fija `/nan-setup` |
+| clave                  | por defecto                   | qué hace                                                |
+| ---------------------- | ----------------------------- | ------------------------------------------------------- |
+| `provider`             | `nan`                         | id de la ruta que se detecta y configura                |
+| `apiKeyEnv`            | `NAN_API_KEY`                 | ref de credencial que usa `/nan-setup` al crear la ruta |
+| `baseUrl`              | `https://api.nan.builders/v1` | base que usa `/nan-setup` al crear la ruta              |
+| `windowDays`           | `30`                          | ventana del desglose (1–90)                             |
+| `autoRefreshSeconds`   | `60`                          | refresco con el panel visible (`0` lo apaga)            |
+| `lowCreditsPercent`    | `10`                          | umbral del badge `warning`/`error`                      |
+| `commandName`          | `usage`                       | nombre del comando de consumo                           |
+| `panelId`              | `usage`                       | id interno del panel                                    |
+| `panelTitle`           | `NaN usage`                   | título de la pestaña                                    |
+| `footer`               | `true`                        | chip de créditos en el footer                           |
+| `footerRefreshMinutes` | `15`                          | refresco del chip                                       |
+| `cacheSeconds`         | `20`                          | caché compartida panel/comando                          |
+| `setupModel`           | `deepseek-v4-flash`           | modelo que fija `/nan-setup`                            |
+| `setupEffort`          | `max`                         | effort que fija `/nan-setup`                            |
 
 ## Desarrollo
 

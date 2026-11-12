@@ -1,7 +1,7 @@
 # dsh-nan-provider
 
 Set up and watch your **NaN** ([nan.builders](https://nan.builders))
-subscription inside the DeepSeek Harness TUI: creates the provider, stores the
+subscription inside the DeepSeek Harness TUI ([dsh-tui](https://github.com/ccch1mneyyy/dsh-TUI)): creates the provider, stores the
 key, sets the default model and shows credits and spend in the sidebar. Based on
 the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
@@ -52,10 +52,12 @@ The plugin finds the provider by id `nan`, by a `nan.builders` `baseURL` or by a
 “NaN” label, then uses its `apiKeyEnv` (and `baseURL`) for the `/nan-usage` call.
 Without a NaN route the query fails and points at `/nan-setup`: there is no
 loose key or URL fallback.
-The key is resolved per operation from the harness credential store
-(`~/.dsh/.credentials.yaml`) and, failing that, from the environment variable.
-When neither has it, `/nan-setup` prompts for it (visible while typing) and
-stores it. The file is never read directly.
+The credential ref is **`NAN_API_KEY`**, owned by this plugin, so a separate
+OpenAI provider can keep `OPENAI_API_KEY` without collisions. It is resolved per
+operation from the harness credential store (`~/.dsh/.credentials.yaml`) and,
+failing that, from the `NAN_API_KEY` environment variable. When neither has it,
+`/nan-setup` prompts for it (visible while typing) and stores it. The file is
+never read directly.
 
 The endpoint is `GET {baseURL}/usage` (documented in
 `https://nan.builders/openapi.json`); it does not consume credits.
@@ -65,22 +67,22 @@ The endpoint is `GET {baseURL}/usage` (documented in
 Optional; set it on the `nan` row of
 `~/.dsh/profiles/dsh-tui/cordis.patch.yml`:
 
-| key | default | what it does |
-| --- | --- | --- |
-| `provider` | `nan` | route id detected and configured |
-| `apiKeyEnv` | `OPENAI_API_KEY` | credential ref `/nan-setup` uses when creating the route |
-| `baseUrl` | `https://api.nan.builders/v1` | base `/nan-setup` uses when creating the route |
-| `windowDays` | `30` | breakdown window (1–90) |
-| `autoRefreshSeconds` | `60` | refresh while visible (`0` = off) |
-| `lowCreditsPercent` | `10` | `warning`/`error` badge threshold |
-| `commandName` | `usage` | usage command name |
-| `panelId` | `usage` | internal panel id |
-| `panelTitle` | `NaN usage` | tab title |
-| `footer` | `true` | footer credits chip |
-| `footerRefreshMinutes` | `15` | chip refresh interval |
-| `cacheSeconds` | `20` | shared panel/command cache |
-| `setupModel` | `deepseek-v4-flash` | model `/nan-setup` selects |
-| `setupEffort` | `max` | effort `/nan-setup` selects |
+| key                    | default                       | what it does                                             |
+| ---------------------- | ----------------------------- | -------------------------------------------------------- |
+| `provider`             | `nan`                         | route id detected and configured                         |
+| `apiKeyEnv`            | `NAN_API_KEY`                 | credential ref `/nan-setup` uses when creating the route |
+| `baseUrl`              | `https://api.nan.builders/v1` | base `/nan-setup` uses when creating the route           |
+| `windowDays`           | `30`                          | breakdown window (1–90)                                  |
+| `autoRefreshSeconds`   | `60`                          | refresh while visible (`0` = off)                        |
+| `lowCreditsPercent`    | `10`                          | `warning`/`error` badge threshold                        |
+| `commandName`          | `usage`                       | usage command name                                       |
+| `panelId`              | `usage`                       | internal panel id                                        |
+| `panelTitle`           | `NaN usage`                   | tab title                                                |
+| `footer`               | `true`                        | footer credits chip                                      |
+| `footerRefreshMinutes` | `15`                          | chip refresh interval                                    |
+| `cacheSeconds`         | `20`                          | shared panel/command cache                               |
+| `setupModel`           | `deepseek-v4-flash`           | model `/nan-setup` selects                               |
+| `setupEffort`          | `max`                         | effort `/nan-setup` selects                              |
 
 ## Development
 
