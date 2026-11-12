@@ -167,3 +167,45 @@ test('syncSharedProfile retries once on a settings conflict', async () => {
     cleanup()
   }
 })
+
+test('publishSharedFromLocal writes the shared file from an existing route', async () => {
+  const { readFileSync: read } = await import('node:fs')
+  const { file, cleanup } = tempFile()
+  try {
+    const { ctx } = settingsCtx({
+      nan: { baseURL: 'https://api.nan.builders/v1', apiKeyEnv: 'NAN_API_KEY', models: [{ id: 'glm5.3', contextWindow: 1048576, maxTokens: 32768 }] },
+    })
+    const { publishSharedFromLocal } = await import('../lib/shared.js')
+    const result = publishSharedFromLocal(ctx, { sharedFile: file })
+    assert.equal(result.published, true)
+    const written = JSON.parse(read(file, 'utf8'))
+    assert.equal(written.provider, 'nan')
+    assert.equal(written.models[0].id, 'glm5.3')
+  } finally {
+    cleanup()
+  }
+})
+
+test('publishSharedFromLocal never overwrites an existing shared file', async () => {
+  const { file, cleanup } = tempFile()
+  try {
+    writeSharedProfile(shared, file)
+    const { ctx } = settingsCtx({ nan: { baseURL: shared.baseUrl, apiKeyEnv: 'NAN_API_KEY', models: [{ id: 'other' }] } })
+    const { publishSharedFromLocal } = await import('../lib/shared.js')
+    assert.deepEqual(publishSharedFromLocal(ctx, { sharedFile: file }), { published: false, reason: 'exists' })
+    assert.deepEqual(readSharedProfile(file), shared)
+  } finally {
+    cleanup()
+  }
+})
+
+test('publishSharedFromLocal ignores profiles without a NaN route', async () => {
+  const { file, cleanup } = tempFile()
+  try {
+    const { ctx } = settingsCtx({ deepseek: { baseURL: 'https://api.deepseek.com', models: [{ id: 'x' }] } })
+    const { publishSharedFromLocal } = await import('../lib/shared.js')
+    assert.deepEqual(publishSharedFromLocal(ctx, { sharedFile: file }), { published: false, reason: 'no-provider' })
+  } finally {
+    cleanup()
+  }
+})
