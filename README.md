@@ -52,21 +52,6 @@ Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
 dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en
 Windows).
 
-## Empezar de cero
-
-```bash
-./scripts/reset.sh --dry-run   # ver qué borraría
-./scripts/reset.sh             # pide confirmación y hace backup
-```
-
-Borra la config de proveedores de `dsh-tui` y `desktop`, las credenciales, el
-`nan-provider.json` compartido y las preferencias de modelo del TUI. **No toca**
-sesiones, historial, workspaces ni adjuntos. El backup queda en
-`~/dsh-backup-<fecha>/`.
-
-Respeta `DSH_HOME` y `DSH_TUI_HOME` si los tienes cambiados, y funciona en
-macOS, Linux y Windows vía Git Bash/WSL.
-
 ## Instalación
 
 ```bash
