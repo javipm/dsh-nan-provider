@@ -24,6 +24,7 @@ const fakeReact = {
 
 const moduleExports = registration.factory(specifier => {
   if (specifier === 'react') return fakeReact
+  if (specifier === '@deepseek-ai/dsh-client-ui-primitives') return { Button: () => null }
   throw new Error(`unexpected external: ${specifier}`)
 })
 

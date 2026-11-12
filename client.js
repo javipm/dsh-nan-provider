@@ -11,6 +11,7 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
     id: 'dsh-nan-provider',
     factory: require => {
       const React = require('react')
+      const primitives = require('@deepseek-ai/dsh-client-ui-primitives')
       const h = React.createElement
 
       const ENDPOINT = '/api/nan-provider/usage'
@@ -78,10 +79,23 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         )
       }
 
+      const text = {
+        primary: 'var(--dsw-alias-label-primary, #1c1f26)',
+        secondary: 'var(--dsw-alias-label-secondary, #5c6270)',
+        tertiary: 'var(--dsw-alias-label-tertiary, #8b93a7)',
+        separator: 'var(--dsw-alias-border-l1, rgba(0,0,0,0.1))',
+        accent: 'var(--dsw-alias-state-business-primary, #4e6fff)',
+      }
+
+      const settingsRow = { display: 'flex', justifyContent: 'space-between', gap: 24, padding: '4px 0' }
+      const settingsValue = { color: text.secondary, fontVariantNumeric: 'tabular-nums' }
+      const settingsLabel = { color: text.tertiary }
+      const group = { display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 12, borderTop: `0.5px solid ${text.separator}` }
+
       function NanUsageSection() {
         const [state, setState] = React.useState({ phase: 'loading' })
         const load = React.useCallback(async () => {
-          setState(previous => ({ phase: previous.report === undefined ? 'loading' : 'refreshing', report: previous.report }))
+          setState(previous => ({ phase: previous.report === undefined ? 'loading' : 'loading', report: previous.report }))
           const result = await fetchUsage()
           setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
         }, [])
@@ -93,75 +107,85 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         const credits = report?.credits
         const ratio = credits !== undefined && credits.allowance > 0 ? credits.used / credits.allowance : undefined
         const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
+        const models = Array.isArray(report?.totals?.byModel) ? [...report.totals.byModel].sort((a, b) => b.credits - a.credits) : []
+
+        const refreshButton = primitives?.Button === undefined
+          ? null
+          : h(
+              primitives.Button,
+              { variant: 'outline', size: 'sm', onClick: () => void load(), disabled: state.phase === 'loading' },
+              state.phase === 'loading' ? 'Actualizando…' : 'Actualizar',
+            )
 
         const header = h(
           'div',
-          { style: { ...row, alignItems: 'center' } },
-          h('div', { style: { fontSize: 18, fontWeight: 600 } }, 'NaN usage'),
-          h(
-            'button',
-            {
-              type: 'button',
-              onClick: () => void load(),
-              disabled: state.phase === 'loading' || state.phase === 'refreshing',
-              style: { cursor: 'pointer' },
-            },
-            state.phase === 'refreshing' ? 'Refreshing…' : 'Refresh',
-          ),
+          { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 } },
+          h('span', { style: { fontSize: 16, fontWeight: 600, color: text.primary } }, 'NaN usage'),
+          refreshButton,
         )
 
         if (report === undefined) {
           return h(
             'div',
-            { style: card },
+            { style: { display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 640, fontSize: 14, lineHeight: '22px' } },
             header,
-            h('div', { style: muted }, state.phase === 'loading' ? 'Querying api.nan.builders…' : state.error?.message ?? 'Usage unavailable'),
+            h('div', { style: { color: text.tertiary } }, state.phase === 'loading' ? 'Consultando api.nan.builders…' : state.error?.message ?? 'Uso no disponible'),
           )
         }
 
-        const models = Array.isArray(report.totals?.byModel) ? [...report.totals.byModel].sort((a, b) => b.credits - a.credits).slice(0, 8) : []
-
         return h(
           'div',
-          { style: card },
+          { style: { display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 640, fontSize: 14, lineHeight: '22px', color: text.primary } },
           header,
-          state.phase === 'error' ? h('div', { style: { color: '#e5534b', fontSize: 13 } }, state.error?.message ?? 'Refresh failed') : null,
+          state.phase === 'error'
+            ? h('div', { style: { color: 'var(--dsw-alias-state-error, #e5534b)', fontSize: 13 } }, state.error?.message ?? 'No se pudo actualizar')
+            : null,
           h(
             'div',
             { style: { display: 'flex', flexDirection: 'column', gap: 6 } },
-            h(Bar, { ratio: ratio ?? 0 }),
             h(
               'div',
-              { style: row },
-              h('span', null, `${number(credits.used)} / ${number(credits.allowance)} credits`),
-              h('span', { style: muted }, ratio === undefined ? '' : `${(ratio * 100).toFixed(1)}%`),
+              { style: { height: 8, borderRadius: 999, background: text.separator, overflow: 'hidden' } },
+              h('div', { style: { width: `${Math.min(Math.max(ratio ?? 0, 0), 1) * 100}%`, height: '100%', background: text.accent } }),
             ),
             h(
               'div',
-              { style: { ...row, ...muted } },
-              h('span', null, `${number(credits.remaining)} left${leftDays === undefined ? '' : ` · ${leftDays}d left`}`),
-              h('span', null, `period ${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
+              { style: { ...settingsRow, padding: 0 } },
+              h('span', null, `${number(credits.used)} / ${number(credits.allowance)} credits`),
+              h('span', { style: settingsValue }, ratio === undefined ? '' : `${(ratio * 100).toFixed(1)}%`),
+            ),
+            h(
+              'div',
+              { style: { ...settingsRow, padding: 0, fontSize: 13 } },
+              h('span', { style: settingsLabel }, `${number(credits.remaining)} left${leftDays === undefined ? '' : ` · ${leftDays}d left`}`),
+              h('span', { style: settingsLabel }, `period ${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
             ),
           ),
           h(
             'div',
-            { style: { display: 'flex', flexDirection: 'column', gap: 4 } },
-            h('div', { style: { fontWeight: 600 } }, `Last ${report.windowDays ?? 30} days`),
+            { style: group },
             h(
               'div',
-              { style: muted },
-              `${tokens(report.totals?.totalTokens)} tokens · ${number(report.totals?.apiRequests)} requests · ${number(report.totals?.credits)} credits`,
+              { style: { ...settingsRow, fontWeight: 600, color: text.primary } },
+              h('span', null, `Last ${report.windowDays ?? 30} days`),
+              h('span', { style: settingsValue }, `${tokens(report.totals?.totalTokens)} tokens`),
+            ),
+            h(
+              'div',
+              { style: { ...settingsRow, fontSize: 13 } },
+              h('span', { style: settingsLabel }, `${number(report.totals?.apiRequests)} requests`),
+              h('span', { style: settingsLabel }, `${number(report.totals?.credits)} credits`),
             ),
             models.length > 0
               ? h(
                   'div',
-                  { style: { display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 } },
+                  { style: { display: 'flex', flexDirection: 'column', marginTop: 6 } },
                   models.map(model =>
                     h(
                       'div',
-                      { key: model.model, style: { ...row, fontSize: 13 } },
+                      { key: model.model, style: { ...settingsRow, padding: '1px 0' } },
                       h('span', null, model.model),
-                      h('span', { style: muted }, `${number(model.credits)} cr · ${tokens(model.totalTokens)} tok`),
+                      h('span', { style: settingsValue }, `${number(model.credits)} cr · ${tokens(model.totalTokens)} tok`),
                     ),
                   ),
                 )
@@ -169,91 +193,16 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
           ),
           h(
             'div',
-            { style: { ...row, ...muted } },
-            h('span', null, report.allTime === undefined ? '' : `All time: ${tokens(report.allTime.totalTokens)} tokens · ${number(report.allTime.apiRequests)} requests`),
-            h('span', null, 'NaN · api.nan.builders'),
+            { style: { ...settingsRow, paddingTop: 12, borderTop: `0.5px solid ${text.separator}`, fontSize: 13 } },
+            h(
+              'span',
+              { style: settingsLabel },
+              report.allTime === undefined ? '' : `All time: ${tokens(report.allTime.totalTokens)} tokens · ${number(report.allTime.apiRequests)} requests`,
+            ),
+            h('span', { style: settingsLabel }, 'NaN · api.nan.builders'),
           ),
         )
       }
-
-      function NanSettingsIcon({ size = 16 } = {}) {
-        return h(
-          'svg',
-          { width: size, height: size, viewBox: '0 0 16 16', 'aria-hidden': true },
-          h('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'currentColor', strokeWidth: 1.4 }),
-          h('path', { d: 'M5 11V5l6 6V5', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' }),
-        )
-      }
-
-      // Copied from the host's composer pills (`.pill` / `.panel` / `.title` /
-      // `.details` classes) so the chip and its card look first-party.
-      const pillStyle = expanded => ({
-        boxSizing: 'border-box',
-        borderRadius: 'var(--dsw-radius-sm, 6px)',
-        maxWidth: '100%',
-        color: expanded ? 'var(--dsw-alias-label-secondary)' : 'var(--dsw-alias-label-tertiary)',
-        fontFamily: 'inherit',
-        fontSize: '12px',
-        fontWeight: 'var(--dsh-pill-font-weight, 400)',
-        fontVariantNumeric: 'tabular-nums',
-        lineHeight: '20px',
-        whiteSpace: 'nowrap',
-        background: expanded ? 'var(--dsw-alias-interactive-bg-hover)' : 'transparent',
-        border: 'none',
-        alignItems: 'center',
-        gap: 6,
-        padding: '1px 8px',
-        display: 'inline-flex',
-        cursor: 'pointer',
-      })
-
-      const panelStyle = {
-        position: 'absolute',
-        bottom: 'calc(100% + 8px)',
-        left: 0,
-        zIndex: 1100,
-        boxSizing: 'border-box',
-        width: 'max-content',
-        minWidth: 'min(300px, calc(100vw - 24px))',
-        maxWidth: 'min(440px, calc(100vw - 24px))',
-        borderRadius: 'var(--dsw-radius-lg, 12px)',
-        background: 'var(--dsw-specific-menu, #ffffff)',
-        backdropFilter: 'var(--dsw-menu-backdrop-filter)',
-        boxShadow: 'var(--dsw-elevation-prominent, 0 8px 24px rgba(0,0,0,0.12))',
-        color: 'var(--dsw-alias-label-secondary, #5c6270)',
-        border: 0,
-        padding: 16,
-        fontSize: 12,
-        lineHeight: '18px',
-        cursor: 'default',
-      }
-
-      const titleStyle = {
-        color: 'var(--dsw-alias-label-primary, #1c1f26)',
-        justifyContent: 'space-between',
-        gap: 16,
-        marginBottom: 8,
-        fontWeight: 500,
-        display: 'flex',
-      }
-
-      const detailsStyle = {
-        color: 'var(--dsw-alias-label-tertiary, #8b93a7)',
-        gridTemplateColumns: 'minmax(76px,auto) minmax(0,1fr)',
-        gap: '6px 16px',
-        margin: 0,
-        display: 'grid',
-      }
-
-      const valueStyle = {
-        color: 'var(--dsw-alias-label-secondary, #5c6270)',
-        fontVariantNumeric: 'tabular-nums',
-        textAlign: 'right',
-        margin: 0,
-        minWidth: 0,
-      }
-
-      const labelStyle = { margin: 0, minWidth: 0 }
 
       function NanUsageChip() {
         const [state, setState] = React.useState({ phase: 'loading' })
@@ -377,6 +326,15 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
             secondary,
           ),
           tooltip,
+        )
+      }
+
+      function NanSettingsIcon({ size = 16 } = {}) {
+        return h(
+          'svg',
+          { width: size, height: size, viewBox: '0 0 16 16', 'aria-hidden': true },
+          h('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'currentColor', strokeWidth: 1.4 }),
+          h('path', { d: 'M5 11V5l6 6V5', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' }),
         )
       }
 
