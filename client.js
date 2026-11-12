@@ -257,6 +257,7 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         const [state, setState] = React.useState({ phase: 'loading' })
         const [open, setOpen] = React.useState(false)
         const [hovered, setHovered] = React.useState(false)
+        const anchorRef = React.useRef(null)
         const load = React.useCallback(async () => {
           const result = await fetchUsage()
           setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
@@ -267,12 +268,31 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
           return () => clearInterval(timer)
         }, [load])
 
+        // The host pills open their card on click (aria-expanded), not on hover:
+        // outside pointerdown, Escape, or a second click closes it.
+        React.useEffect(() => {
+          if (!open) return undefined
+          const onPointerDown = event => {
+            if (anchorRef.current !== null && !anchorRef.current.contains(event.target)) setOpen(false)
+          }
+          const onKeyDown = event => {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          document.addEventListener('pointerdown', onPointerDown)
+          document.addEventListener('keydown', onKeyDown)
+          return () => {
+            document.removeEventListener('pointerdown', onPointerDown)
+            document.removeEventListener('keydown', onKeyDown)
+          }
+        }, [open])
+
         const report = state.report
         const credits = report?.credits
         const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
-        const label = report === undefined
+        const primary = report === undefined
           ? state.phase === 'loading' ? 'NaN …' : 'NaN —'
-          : `NaN ${number(credits.remaining)} cr${leftDays === undefined ? '' : ` · ${leftDays}d`}`
+          : `NaN ${number(credits.remaining)} cr`
+        const secondary = report === undefined || leftDays === undefined ? null : `${leftDays}d`
 
         const detail = (key, labelText, valueText) => [
           h('dt', { key: `${key}-dt`, style: labelStyle }, labelText),
@@ -333,14 +353,8 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
           'span',
           {
             style: { position: 'relative', display: 'inline-flex', minWidth: 0 },
-            onMouseEnter: () => {
-              setOpen(true)
-              setHovered(true)
-            },
-            onMouseLeave: () => {
-              setOpen(false)
-              setHovered(false)
-            },
+            onMouseEnter: () => setHovered(true),
+            onMouseLeave: () => setHovered(false),
           },
           h(
             'button',
@@ -348,15 +362,17 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
               type: 'button',
               'aria-expanded': open,
               onClick: () => {
-                setOpen(true)
+                setOpen(value => !value)
                 void load()
               },
-              onFocus: () => setOpen(true),
-              onBlur: () => setOpen(false),
               style: pillStyle(open || hovered),
             },
             icon,
-            label,
+            primary,
+            secondary === null
+              ? null
+              : h('span', { style: { color: 'var(--dsw-alias-separator-primary, currentColor)', margin: '0 6px' } }, '·'),
+            secondary,
           ),
           tooltip,
         )
