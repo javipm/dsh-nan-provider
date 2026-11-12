@@ -3,7 +3,7 @@
   "manifestVersion": "0.15",
   "id": "javipm.nan-provider",
   "name": "NaN provider",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "facets": {
     "host": {
       "entry": "lib/index.js",
