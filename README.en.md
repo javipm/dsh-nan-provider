@@ -11,8 +11,20 @@ the idea of [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
 🇬🇧 **English** · 🇪🇸 [Español](README.md)
 
+### TUI
+
 <p align="center">
-  <img src="docs/panel.jpg" alt="The NaN usage panel and the credits chip in the footer" width="900">
+  <img src="docs/panel.jpg" alt="The NaN usage sidebar panel and the footer credits chip in the TUI" width="900">
+</p>
+
+### Desktop
+
+<p align="center">
+  <img src="docs/web-settings.webp" alt="The NaN usage card in Desktop Settings" width="820">
+</p>
+
+<p align="center">
+  <img src="docs/web-chip.webp" alt="The composer credits chip and its detail card" width="820">
 </p>
 
 ## What it does
@@ -88,8 +100,21 @@ How the profiles are linked:
 - A profile with an existing `nan` route and no shared file publishes it (first
   boot after upgrading). `/nan-setup` is what updates it afterwards.
 
-Desktop has no panel or footer chip (TUI seams): `/nan-setup` and `/nan-usage`
-(text report) are available.
+In Desktop the chip lives in the composer bar and the card in Settings; there is
+no side panel or footer chip (TUI seams).
+
+### Why NaN is not listed under “External model provider”
+
+By decision, not by limitation. The plugin writes the complete provider
+(`providers.nan` with baseURL, key, verified catalog and compat) through the
+settings service — the same path the wizard uses, without depending on it.
+
+That dropdown is populated by the host from `ctx.llm.listConfigurableProviders()`.
+A plugin can declare an entry there, but the wizard would only record the route
+and ask for the key: it would discover models from `/v1/models` at that moment,
+without the verified context, effort or compat. That would duplicate the path
+and could leave a poorer `providers.nan` than `/nan-setup`. One source only:
+`/nan-setup`.
 
 Same on macOS, Windows and Linux: plain ESM with `fetch`, no native
 dependencies. Config lives under `~/.dsh` (`%USERPROFILE%\.dsh` on Windows) and
