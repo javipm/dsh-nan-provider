@@ -123,7 +123,7 @@ test('setup creates the provider, stores the key and refreshes the models', asyn
   assert.equal(written.baseURL, 'https://api.nan.builders/v1')
   assert.equal(written.apiKeyEnv, 'NAN_API_KEY')
   assert.equal(written.models.length, NAN_MODELS.length + 1)
-  assert.deepEqual(state.saved, { provider: 'nan', model: 'deepseek-v4-flash' })
+  assert.deepEqual(state.saved, { provider: 'nan', model: 'deepseek-v4-flash', reasoningEffort: 'max' })
   assert.match(describeNanSetup(result), /Provider nan: created/)
   assert.match(describeNanSetup(result), /1 new: brand-new-chat/)
 })
@@ -193,10 +193,10 @@ test('buildProviderProfile carries the whole catalog and retry policy', () => {
 
 test('the shipped catalog carries the measured reasoning overrides', () => {
   const byId = new Map(NAN_MODELS.map(model => [model.id, model]))
-  assert.equal(byId.get('deepseek-v4-flash').reasoningEfforts, false)
+  assert.deepEqual(byId.get('deepseek-v4-flash').reasoningEfforts, { off: 'none', low: 'low', medium: 'medium', high: 'high', max: 'max' })
   assert.equal(byId.get('glm5.3-flash').reasoningEfforts.off, 'minimal')
   assert.equal(byId.get('glm5.3').reasoningEfforts.off, 'low')
-  assert.equal(byId.get('kimi-k3.1-pro').reasoningEfforts, false)
+  assert.equal(byId.get('kimi-k3.1-pro').reasoningEfforts.off, 'none')
   assert.equal(byId.get('qwen3.8-flash').compat.maxTokensField, 'max_completion_tokens')
 })
 
