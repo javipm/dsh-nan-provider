@@ -51,6 +51,21 @@ Desktop has no panel or footer chip (TUI seams); `/nan-setup` and `/nan-usage`
 Same on macOS, Windows and Linux: plain ESM with `fetch`, no native
 dependencies. Config lives under `~/.dsh` (`%USERPROFILE%\.dsh` on Windows).
 
+## Start from scratch
+
+```bash
+./scripts/reset.sh --dry-run   # preview what it would delete
+./scripts/reset.sh             # asks for confirmation, writes a backup
+```
+
+Removes the provider configuration of `dsh-tui` and `desktop`, the credentials,
+the shared `nan-provider.json` and the TUI model preferences. It never touches
+sessions, history, workspaces or attachments. The backup lands in
+`~/dsh-backup-<date>/`.
+
+It honours `DSH_HOME` and `DSH_TUI_HOME` when overridden, and works on macOS,
+Linux and Windows through Git Bash/WSL.
+
 ## Install
 
 ```bash
