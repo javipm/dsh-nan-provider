@@ -1,6 +1,6 @@
 {
   "name": "dsh-nan-provider",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "NaN (nan.builders) provider setup and subscription usage for the DeepSeek Harness TUI, based on the pi-nan-provider approach: creates the provider, stores the key, sets the default model and shows credits in a sidebar panel.",
   "keywords": [
     "dsh",
