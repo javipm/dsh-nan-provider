@@ -17,9 +17,11 @@
       "import": "./lib/index.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./client": "./client.js"
   },
   "files": [
+    "client.js",
     "scripts",
     "lib",
     "cordis.patch.yml",
@@ -27,19 +29,30 @@
     "README.md",
     "README.en.md",
     "AGENTS.md",
+    "CONTRIBUTING.md",
     "docs/panel.jpg",
+    "docs/web-settings.webp",
+    "docs/web-chip.webp",
     "NOTICE",
     "LICENSE"
   ],
   "engines": {
-    "node": "^22.19 || >=24"
+    "node": "^22.19 || >=24",
+    "dsh": ">=0.2.0-rc.2"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "check": "node --check client.js && node --test test/*.test.js && npm pack --dry-run"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "external": [
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
     }
   },
   "license": "MIT",

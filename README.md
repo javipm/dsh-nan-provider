@@ -6,10 +6,26 @@ como en **Desktop**: crea el proveedor, guarda la clave, deja el modelo por
 defecto y muestra créditos y gasto. Basado en la idea de
 [pi-nan-provider](https://github.com/gtrabanco/pi-nan-provider).
 
+[![npm](https://img.shields.io/npm/v/dsh-nan-provider.svg?color=blue)](https://www.npmjs.com/package/dsh-nan-provider)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DSH](https://img.shields.io/badge/DSH-%3E%3D0.2.0--rc.2-6f42c1.svg)](https://github.com/deepseek-ai/deepseek-harness)
+
 🇬🇧 [English](README.en.md) · 🇪🇸 **Español**
 
+### TUI
+
 <p align="center">
-  <img src="docs/panel.jpg" alt="Panel «NaN usage» y chip de créditos en el footer" width="900">
+  <img src="docs/panel.jpg" alt="Panel «NaN usage» en el sidebar y chip de créditos en el footer de la TUI" width="900">
+</p>
+
+### Desktop
+
+<p align="center">
+  <img src="docs/web-settings.webp" alt="Tarjeta NaN usage en Ajustes de Desktop" width="820">
+</p>
+
+<p align="center">
+  <img src="docs/web-chip.webp" alt="Chip de créditos y tarjeta de detalle sobre la barra del compositor" width="820">
 </p>
 
 ## Qué hace
@@ -26,6 +42,10 @@ defecto y muestra créditos y gasto. Basado en la idea de
 - **`/nan-usage`** abre la pestaña; **`/nan-usage text`** devuelve el informe en el chat.
 - **Chip en el footer** (`NaN 6,195 cr · 14d`) en la línea de estado, con el
   desglose al pasar el ratón. `footer: false` lo apaga.
+- **Desktop/web**: un **chip siempre visible sobre el compositor**
+  (`NaN 6,195 cr · 14d`, refresco cada 5 min o al clicarlo) y una **tarjeta en
+  Ajustes** con el desglose completo. El navegador nunca ve la clave: consulta
+  una ruta loopback autenticada del host (`/api/nan-provider/usage`).
 
 > El panel Info del sidebar es código del host con secciones fijas; la vía
 > soportada es una pestaña propia. El chip se une a la línea de estado existente
@@ -82,8 +102,22 @@ Cómo se enlazan los perfiles:
 - Si un perfil no encuentra el fichero pero ya tiene una ruta `nan`, la publica
   él (primer arranque tras actualizar). `/nan-setup` es quien lo actualiza.
 
-En Desktop no hay panel ni chip (son seams del TUI): tienes `/nan-setup` y
-`/nan-usage` como informe de texto.
+En Desktop el chip vive en la barra del compositor y la tarjeta en Ajustes; no
+hay panel lateral ni chip de footer (son seams del TUI).
+
+### Por qué NaN no aparece en «Proveedor de modelos externo»
+
+Por decisión, no por limitación. El plugin escribe el proveedor completo
+(`providers.nan` con baseURL, clave, catálogo verificado y compat) a través del
+servicio de settings, que es el mismo camino que usa el asistente, pero sin
+depender de él.
+
+Ese desplegable lo puebla el host con `ctx.llm.listConfigurableProviders()`. Un
+plugin puede declarar una entrada ahí, pero el asistente solo anotaría la ruta y
+pediría la clave: los modelos los descubriría contra `/v1/models` en el momento,
+sin contexto, effort ni compat verificados. Eso duplicaría el camino y podría
+dejar un `providers.nan` más pobre que el de `/nan-setup`. Por eso se mantiene
+un único origen: `/nan-setup`.
 
 Funciona igual en macOS, Windows y Linux: ESM puro con `fetch`, sin
 dependencias nativas. La config vive en `~/.dsh` (`%USERPROFILE%\.dsh` en

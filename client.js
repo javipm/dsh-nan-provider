@@ -1,0 +1,383 @@
+/**
+ * Browser half: the "NaN" card in Settings (web / Desktop).
+ *
+ * Built as a hand-written client module (no bundler): the web shell loads it
+ * through `window.__ModuleLoader__`, gives it `react` and `@deepseek-ai/cordis`
+ * from its baseline table, and activates the exported plugin. The card only
+ * talks to the host route `/api/nan-provider/usage`; it never sees the API key.
+ */
+if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
+  window.__ModuleLoader__.load({
+    id: 'dsh-nan-provider',
+    factory: require => {
+      const React = require('react')
+      const primitives = require('@deepseek-ai/dsh-client-ui-primitives')
+      const h = React.createElement
+
+      const ENDPOINT = '/api/nan-provider/usage'
+
+      async function fetchUsage() {
+        const response = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: '{}',
+        })
+        const payload = await response.json().catch(() => undefined)
+        if (payload === undefined) return { ok: false, message: `HTTP ${response.status}` }
+        return payload
+      }
+
+      const number = value =>
+        typeof value === 'number' && Number.isFinite(value)
+          ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(value)
+          : '—'
+
+      const tokens = value => {
+        if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
+        if (value >= 1e9) return `${(value / 1e9).toFixed(2)}B`
+        if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`
+        if (value >= 1e3) return `${(value / 1e3).toFixed(1)}k`
+        return String(value)
+      }
+
+      const shortDate = value => {
+        const date = new Date(value)
+        return Number.isNaN(date.getTime())
+          ? '—'
+          : date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+      }
+
+      const daysUntil = value => {
+        const target = Date.parse(value)
+        if (!Number.isFinite(target)) return undefined
+        return Math.max(0, Math.ceil((target - Date.now()) / 86_400_000))
+      }
+
+      const muted = { color: 'var(--dsh-text-secondary, #8b93a7)', fontSize: 13 }
+      const row = { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '2px 0' }
+      const card = { display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }
+
+      function Bar({ ratio }) {
+        const clamped = Math.min(Math.max(ratio, 0), 1)
+        return h(
+          'div',
+          {
+            style: {
+              height: 8,
+              borderRadius: 999,
+              background: 'var(--dsh-surface-sunken, rgba(127,127,127,0.2))',
+              overflow: 'hidden',
+            },
+          },
+          h('div', {
+            style: {
+              width: `${clamped * 100}%`,
+              height: '100%',
+              background: clamped >= 0.9 ? '#e5534b' : clamped >= 0.7 ? '#d29922' : 'var(--dsh-accent, #4e6fff)',
+            },
+          }),
+        )
+      }
+
+      const text = {
+        primary: 'var(--dsw-alias-label-primary, #1c1f26)',
+        secondary: 'var(--dsw-alias-label-secondary, #5c6270)',
+        tertiary: 'var(--dsw-alias-label-tertiary, #8b93a7)',
+        separator: 'var(--dsw-alias-border-l1, rgba(0,0,0,0.1))',
+        accent: 'var(--dsw-alias-state-business-primary, #4e6fff)',
+      }
+
+      const settingsRow = { display: 'flex', justifyContent: 'space-between', gap: 24, padding: '4px 0' }
+      const settingsValue = { color: text.secondary, fontVariantNumeric: 'tabular-nums' }
+      const settingsLabel = { color: text.tertiary }
+      const group = { display: 'flex', flexDirection: 'column', gap: 2, paddingTop: 12, borderTop: `0.5px solid ${text.separator}` }
+
+      function NanUsageSection() {
+        const [state, setState] = React.useState({ phase: 'loading' })
+        const load = React.useCallback(async () => {
+          setState(previous => ({ phase: previous.report === undefined ? 'loading' : 'loading', report: previous.report }))
+          const result = await fetchUsage()
+          setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
+        }, [])
+        React.useEffect(() => {
+          void load()
+        }, [load])
+
+        const report = state.report
+        const credits = report?.credits
+        const ratio = credits !== undefined && credits.allowance > 0 ? credits.used / credits.allowance : undefined
+        const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
+        const models = Array.isArray(report?.totals?.byModel) ? [...report.totals.byModel].sort((a, b) => b.credits - a.credits) : []
+
+        const refreshButton = primitives?.Button === undefined
+          ? null
+          : h(
+              primitives.Button,
+              { variant: 'outline', size: 'sm', onClick: () => void load(), disabled: state.phase === 'loading' },
+              state.phase === 'loading' ? 'Actualizando…' : 'Actualizar',
+            )
+
+        const header = h(
+          'div',
+          { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 } },
+          h('span', { style: { fontSize: 16, fontWeight: 600, color: text.primary } }, 'NaN usage'),
+          refreshButton,
+        )
+
+        if (report === undefined) {
+          return h(
+            'div',
+            { style: { display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 640, fontSize: 14, lineHeight: '22px' } },
+            header,
+            h('div', { style: { color: text.tertiary } }, state.phase === 'loading' ? 'Consultando api.nan.builders…' : state.error?.message ?? 'Uso no disponible'),
+          )
+        }
+
+        return h(
+          'div',
+          { style: { display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 640, fontSize: 14, lineHeight: '22px', color: text.primary } },
+          header,
+          state.phase === 'error'
+            ? h('div', { style: { color: 'var(--dsw-alias-state-error, #e5534b)', fontSize: 13 } }, state.error?.message ?? 'No se pudo actualizar')
+            : null,
+          h(
+            'div',
+            { style: { display: 'flex', flexDirection: 'column', gap: 6 } },
+            h(
+              'div',
+              { style: { height: 8, borderRadius: 999, background: text.separator, overflow: 'hidden' } },
+              h('div', { style: { width: `${Math.min(Math.max(ratio ?? 0, 0), 1) * 100}%`, height: '100%', background: text.accent } }),
+            ),
+            h(
+              'div',
+              { style: { ...settingsRow, padding: 0 } },
+              h('span', null, `${number(credits.used)} / ${number(credits.allowance)} credits`),
+              h('span', { style: settingsValue }, ratio === undefined ? '' : `${(ratio * 100).toFixed(1)}%`),
+            ),
+            h(
+              'div',
+              { style: { ...settingsRow, padding: 0, fontSize: 13 } },
+              h('span', { style: settingsLabel }, `${number(credits.remaining)} left${leftDays === undefined ? '' : ` · ${leftDays}d left`}`),
+              h('span', { style: settingsLabel }, `period ${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
+            ),
+          ),
+          h(
+            'div',
+            { style: group },
+            h(
+              'div',
+              { style: { ...settingsRow, fontWeight: 600, color: text.primary } },
+              h('span', null, `Last ${report.windowDays ?? 30} days`),
+              h('span', { style: settingsValue }, `${tokens(report.totals?.totalTokens)} tokens`),
+            ),
+            h(
+              'div',
+              { style: { ...settingsRow, fontSize: 13 } },
+              h('span', { style: settingsLabel }, `${number(report.totals?.apiRequests)} requests`),
+              h('span', { style: settingsLabel }, `${number(report.totals?.credits)} credits`),
+            ),
+            models.length > 0
+              ? h(
+                  'div',
+                  { style: { display: 'flex', flexDirection: 'column', marginTop: 6 } },
+                  models.map(model =>
+                    h(
+                      'div',
+                      { key: model.model, style: { ...settingsRow, padding: '1px 0' } },
+                      h('span', null, model.model),
+                      h('span', { style: settingsValue }, `${number(model.credits)} cr · ${tokens(model.totalTokens)} tok`),
+                    ),
+                  ),
+                )
+              : null,
+          ),
+          h(
+            'div',
+            { style: { ...settingsRow, paddingTop: 12, borderTop: `0.5px solid ${text.separator}`, fontSize: 13 } },
+            h(
+              'span',
+              { style: settingsLabel },
+              report.allTime === undefined ? '' : `All time: ${tokens(report.allTime.totalTokens)} tokens · ${number(report.allTime.apiRequests)} requests`,
+            ),
+            h('span', { style: settingsLabel }, 'NaN · api.nan.builders'),
+          ),
+        )
+      }
+
+      function NanUsageChip() {
+        const [state, setState] = React.useState({ phase: 'loading' })
+        const [open, setOpen] = React.useState(false)
+        const [hovered, setHovered] = React.useState(false)
+        const anchorRef = React.useRef(null)
+        const load = React.useCallback(async () => {
+          const result = await fetchUsage()
+          setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
+        }, [])
+        React.useEffect(() => {
+          void load()
+          const timer = setInterval(() => void load(), 300_000)
+          return () => clearInterval(timer)
+        }, [load])
+
+        // The host pills open their card on click (aria-expanded), not on hover:
+        // outside pointerdown, Escape, or a second click closes it.
+        React.useEffect(() => {
+          if (!open) return undefined
+          const onPointerDown = event => {
+            if (anchorRef.current !== null && !anchorRef.current.contains(event.target)) setOpen(false)
+          }
+          const onKeyDown = event => {
+            if (event.key === 'Escape') setOpen(false)
+          }
+          document.addEventListener('pointerdown', onPointerDown)
+          document.addEventListener('keydown', onKeyDown)
+          return () => {
+            document.removeEventListener('pointerdown', onPointerDown)
+            document.removeEventListener('keydown', onKeyDown)
+          }
+        }, [open])
+
+        const report = state.report
+        const credits = report?.credits
+        const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
+        const primary = report === undefined
+          ? state.phase === 'loading' ? 'NaN …' : 'NaN —'
+          : `NaN ${number(credits.remaining)} cr`
+        const secondary = report === undefined || leftDays === undefined ? null : `${leftDays}d`
+
+        const detail = (key, labelText, valueText) => [
+          h('dt', { key: `${key}-dt`, style: labelStyle }, labelText),
+          h('dd', { key: `${key}-dd`, style: valueStyle }, valueText),
+        ]
+
+        const icon = h(
+          'svg',
+          { width: 14, height: 14, viewBox: '0 0 16 16', 'aria-hidden': true, style: { flex: 'none' } },
+          h('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'currentColor', strokeWidth: 1.3 }),
+          h('path', { d: 'M8 8l3.2-3.2', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round' }),
+          h('circle', { cx: 8, cy: 8, r: 1.2, fill: 'currentColor' }),
+        )
+
+        const tooltip = open
+          ? h(
+              'div',
+              { role: 'dialog', style: panelStyle },
+              h(
+                'div',
+                { style: titleStyle },
+                h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 } }, icon, 'NaN usage'),
+                h('span', { style: { fontVariantNumeric: 'tabular-nums' } }, report === undefined ? '—' : `${number(credits.used)} / ${number(credits.allowance)}`),
+              ),
+              h('div', { style: { borderTop: '0.5px solid var(--dsw-alias-border-l2, rgba(0,0,0,0.1))', marginBottom: 10 } }),
+              report === undefined
+                ? h('div', { style: { opacity: 0.8 } }, state.error?.message ?? 'Querying api.nan.builders…')
+                : h(
+                    'dl',
+                    { style: detailsStyle },
+                    detail('left', 'créditos restantes', `${number(credits.remaining)} cr`),
+                    detail('ratio', 'usado', `${number(credits.used)} / ${number(credits.allowance)}`),
+                    detail('period', 'periodo', `${shortDate(credits.periodStart)} → ${shortDate(credits.periodEnd)}`),
+                    detail('days', 'días restantes', leftDays === undefined ? '—' : `${leftDays}d`),
+                    detail('window', `últimos ${report.windowDays ?? 30} días`, `${tokens(report.totals?.totalTokens)} tok`),
+                    detail('credits', 'créditos', number(report.totals?.credits)),
+                    detail('requests', 'peticiones', number(report.totals?.apiRequests)),
+                    report.allTime === undefined ? null : detail('all', 'histórico', `${tokens(report.allTime.totalTokens)} tok`),
+                  ),
+              report === undefined
+                ? null
+                : h(
+                    'button',
+                    {
+                      type: 'button',
+                      onClick: event => {
+                        event.stopPropagation()
+                        void load()
+                      },
+                      style: { marginTop: 10, padding: 0, border: 'none', background: 'transparent', color: 'var(--dsw-alias-state-business-primary, #4e6fff)', fontSize: 12, cursor: 'pointer' },
+                    },
+                    state.phase === 'refreshing' ? 'Actualizando…' : 'Actualizar',
+                  ),
+            )
+          : null
+
+        return h(
+          'span',
+          {
+            style: { position: 'relative', display: 'inline-flex', minWidth: 0 },
+            onMouseEnter: () => setHovered(true),
+            onMouseLeave: () => setHovered(false),
+          },
+          h(
+            'button',
+            {
+              type: 'button',
+              'aria-expanded': open,
+              onClick: () => {
+                setOpen(value => !value)
+                void load()
+              },
+              style: pillStyle(open || hovered),
+            },
+            icon,
+            primary,
+            secondary === null
+              ? null
+              : h('span', { style: { color: 'var(--dsw-alias-separator-primary, currentColor)', margin: '0 6px' } }, '·'),
+            secondary,
+          ),
+          tooltip,
+        )
+      }
+
+      function NanSettingsIcon({ size = 16 } = {}) {
+        return h(
+          'svg',
+          { width: size, height: size, viewBox: '0 0 16 16', 'aria-hidden': true },
+          h('circle', { cx: 8, cy: 8, r: 7, fill: 'none', stroke: 'currentColor', strokeWidth: 1.4 }),
+          h('path', { d: 'M5 11V5l6 6V5', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' }),
+        )
+      }
+
+      const SECTION_ID = 'nan-provider'
+
+      return {
+        name: 'nan-provider-client',
+        inject: ['slots'],
+        apply(ctx) {
+          ctx.slots.inject('settings.section', () =>
+            ctx.slots.register(
+              {
+                name: 'settings.section',
+                id: SECTION_ID,
+                order: 16,
+                label: () => 'NaN',
+                inject: () => ({}),
+              },
+              NanUsageSection,
+            ),
+          )
+          // The composer's bottom stats row (turns · tok/s · tokens · cache) is
+          // a `conversation.composer.dock` list of pills; this adds one more,
+          // matching the TUI footer field.
+          ctx.slots.inject('conversation.composer.dock', () =>
+            ctx.slots.register(
+              {
+                name: 'conversation.composer.dock',
+                id: 'nan-usage',
+                order: 2,
+                inject: () => ({}),
+              },
+              NanUsageChip,
+            ),
+          )
+          ctx.slots.inject('settings.section.icon', () =>
+            ctx.slots.register(
+              { name: 'settings.section.icon', id: SECTION_ID },
+              NanSettingsIcon,
+            ),
+          )
+        },
+      }
+    },
+  })
+}
