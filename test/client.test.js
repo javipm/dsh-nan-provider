@@ -52,11 +52,14 @@ test('apply registers the settings section and its icon', () => {
 
   moduleExports.apply(ctx)
 
-  assert.deepEqual(injected, ['settings.section', 'settings.section.icon'])
-  assert.equal(registered.length, 2)
+  assert.deepEqual(injected, ['settings.section', 'conversation.input.dock', 'settings.section.icon'])
+  assert.equal(registered.length, 3)
   assert.equal(registered[0].options.name, 'settings.section')
   assert.equal(registered[0].options.id, 'nan-provider')
   assert.equal(registered[0].options.label(), 'NaN')
   assert.equal(typeof registered[0].component, 'function')
-  assert.equal(registered[1].options.name, 'settings.section.icon')
+  assert.equal(registered[1].options.name, 'conversation.input.dock')
+  assert.equal(registered[1].options.id, 'nan-usage-chip')
+  assert.equal(typeof registered[1].component, 'function')
+  assert.equal(registered[2].options.name, 'settings.section.icon')
 })

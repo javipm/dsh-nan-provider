@@ -185,6 +185,53 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
         )
       }
 
+      function NanUsageChip() {
+        const [state, setState] = React.useState({ phase: 'loading' })
+        const load = React.useCallback(async () => {
+          const result = await fetchUsage()
+          setState({ phase: result.ok ? 'ready' : 'error', report: result.report, error: result })
+        }, [])
+        React.useEffect(() => {
+          void load()
+          const timer = setInterval(() => void load(), 300_000)
+          return () => clearInterval(timer)
+        }, [load])
+
+        const credits = state.report?.credits
+        const leftDays = credits?.periodEnd === undefined ? undefined : daysUntil(credits.periodEnd)
+        const label = state.report === undefined
+          ? state.phase === 'loading' ? 'NaN …' : 'NaN —'
+          : `NaN ${number(credits.remaining)} cr${leftDays === undefined ? '' : ` · ${leftDays}d`}`
+        const tone = state.phase === 'error'
+          ? '#e5534b'
+          : credits !== undefined && credits.allowance > 0 && credits.used / credits.allowance >= 0.9
+            ? '#e5534b'
+            : undefined
+        return h(
+          'button',
+          {
+            type: 'button',
+            title: state.report === undefined
+              ? state.error?.message ?? 'NaN usage'
+              : `${number(credits.used)} / ${number(credits.allowance)} credits used · period ends ${shortDate(credits.periodEnd)}`,
+            onClick: () => void load(),
+            style: {
+              alignSelf: 'flex-start',
+              margin: '4px 12px 0',
+              padding: '2px 10px',
+              borderRadius: 999,
+              border: '1px solid var(--dsh-border-subtle, rgba(127,127,127,0.35))',
+              background: 'transparent',
+              color: tone ?? 'var(--dsh-text-secondary, #8b93a7)',
+              fontSize: 12,
+              cursor: 'pointer',
+              fontVariantNumeric: 'tabular-nums',
+            },
+          },
+          label,
+        )
+      }
+
       const SECTION_ID = 'nan-provider'
 
       return {
@@ -201,6 +248,19 @@ if (typeof window !== 'undefined' && window.__ModuleLoader__ !== undefined) {
                 inject: () => ({}),
               },
               NanUsageSection,
+            ),
+          )
+          // Always-visible chip above the composer, the web counterpart of the
+          // TUI footer field.
+          ctx.slots.inject('conversation.input.dock', () =>
+            ctx.slots.register(
+              {
+                name: 'conversation.input.dock',
+                id: 'nan-usage-chip',
+                order: 40,
+                inject: () => ({}),
+              },
+              NanUsageChip,
             ),
           )
           ctx.slots.inject('settings.section.icon', () =>
